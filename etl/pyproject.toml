@@ -1,0 +1,58 @@
+[tool.ruff]
+# Target Python version
+target-version = "py311"
+# Maximum line length (88 matches Black's default)
+line-length = 88
+# Paths to check
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "tests/fixtures",  # Exclude test fixture data
+]
+
+[tool.ruff.lint]
+# Which rule sets to enable
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes (basic errors)
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade (modern Python suggestions)
+    "B",   # flake8-bugbear (common bug patterns)
+    "C4",  # flake8-comprehensions (improve list/dict comprehensions)
+    "SIM", # flake8-simplify (suggest simpler code)
+    "RUF", # Ruff-specific rules
+    "N",   # (pep8-naming): Enforces naming conventions
+    "DTZ", # (flake8-datetimez): For ETLs, this enforces timezone-aware datetime handling to prevent bugs.
+    "Q",   # (flake8-quotes): Enforces consistent quoting style.
+    "PTH", # (flake8-use-pathlib): Encourages modern, safer path handling.
+
+]
+
+extend-select = [
+    "RET",  # Enforce good return practices (e.g., explicit `return None`)[reference:15]
+    "ARG",  # Catch unused function arguments[reference:16]
+    "PIE",  # flake8-pie: Uncomplicated code improvements[reference:17]
+    "RUF",  # Ruff's own high-value rules[reference:18]
+    "PERF", # Performance anti-patterns[reference:19]
+    "LOG",  # Consistent logging format warnings[reference:20]
+]
+
+# Rules to explicitly ignore
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Avoid function calls in argument defaults (false positive)
+]
+
+[tool.ruff.format]
+# Match Black's quoting style
+quote-style = "double"
+# Indent with spaces, 4 spaces
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+# For test files, ignore certain rules if needed
+"tests/*" = ["S101"]  # Ignore assert statements in tests

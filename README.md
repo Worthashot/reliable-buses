@@ -18,7 +18,8 @@ Predict future bus arrival times using historical and real‑time data from the 
 - **Captures** live bus data from the TfL API and stores it in a SQLite database.
 - **Runs a custom Python scheduler** (using threads and processes) to orchestrate tasks:
   - **Every minute:** ingests fresh live data from the TfL API.
-  - **Daily (nightly):** runs heavier aggregations, joins, and statistical analysis.
+  - **Every 2 hours:** validates accumulated live data.
+  - **Daily (nightly):** runs heavier aggregations, joins, and setup for the day.
 - **Verifies** incoming data (e.g. predicted stops vs recorded stops), **joins** stops, routes, timetables, and actual arrivals, and **aggregates** the results.
 - **Serves** the processed data via a NestJS API with API key authentication.
 - **Displays** a comparison chart (actual vs timetabled arrival times) on a simple React website.
@@ -50,7 +51,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 | Area | What I’ve implemented |
 |------|------------------------|
 | **Data Engineering** | Incremental ingestion from TfL, data cleaning, join logic, and aggregation for statistical analysis. |
-| **Concurrency & Scheduling** | Custom Python scheduler using `threading` and `multiprocessing` – one‑minute live updates, nightly batch jobs. |
+| **Concurrency & Scheduling** | Custom Python scheduler using `threading` and `multiprocessing` – one‑minute live updates, every 2 hours validation, nightly batch jobs. |
 | **Backend** | NestJS with API key authentication, SQLite integration, and endpoints for services, stops, and image generation. |
 | **Frontend** | Minimal React app that fetches and displays a chart image – demonstrating API integration. |
 | **DevOps** | Environment‑based configuration (`.env`), linting with Ruff (Python), and a reproducible setup process. |
@@ -73,7 +74,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 
 ### Prerequisites
 - Git
-- Python 3.11+
+- Python 3.12.3+
 - Node.js 18+ and npm
 - SQLite3 (usually included with Python)
 
@@ -81,55 +82,46 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 Use Git to clone your own fork of the repository, then navigate into the project folder.
 
 ### 2. Environment configuration
-Each component has an `.env.example` file. Copy it to `.env` and fill in your own values (especially API keys for TfL).
+Each component has an `.env.example` file. Copy it to `.env` and fill in your own values (especially API URL and keys for TfL).
 
 **For the ETL:**  
 Go into the `etl` folder, copy `.env.example` to `.env`, then edit the file with your TfL API credentials.
 
 **For the API:**  
-Go into the `backend` folder, copy `.env.example` to `.env`, then edit the file (API key, database path, etc.).
+Go into the `backend` folder, copy `.env.example` to `.env`, then edit the file. Feel free to use the example database, as it should fill itself out as the program runs, 
+otherwise, make sure you have an entry in api_keys with ADMIN privilage.
 
 **For the frontend:**  
-Go into the `frontend` folder, copy `.env.example` to `.env`, then set the API base URL (e.g., `http://13.43.73.157`).
+Go into the `frontend` folder, copy `.env.example` to `.env`, then set the API base URL.
 
-### 3. Set up the Python ETL + Scheduler
-Open a terminal in the `etl` folder, then run:
-
-python -m venv venv
-source venv/bin/activate # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
-text
-
-
-**Start the scheduler** (this will run the minute‑by‑minute live capture and nightly jobs):
-
-python scheduler.py # or your main scheduler entry point
-text
-
-
-To run the ETL manually (without the scheduler), use:
-
-[Insert your manual ETL command – e.g., python src/run_once.py]
-text
-
-
-### 4. Set up the NestJS API
+### 3. Set up the NestJS API
 Open a terminal in the `backend` folder, then run:
 
 npm install
 npm run build
 npm run start:prod # or start:dev for development
-text
-
 
 The API will run on `http://localhost:3000` (or the port you set in `.env`).
+
+### 4. Set up the Python ETL + Scheduler
+Open a terminal in the `etl` folder, then run:
+
+python -m venv venv
+source venv/bin/activate # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+
+**Start the scheduler** (this will run the minute‑by‑minute live capture, 2 hourly validation, and nightly jobs):
+
+python scheduler.py # or your main scheduler entry point
+
+
 
 ### 5. Set up the React frontend
 Open a terminal in the `frontend` folder, then run:
 
 npm install
 npm run build
-text
+
 
 
 Serve the `build` folder (e.g., with `serve -s build` or nginx).
@@ -149,7 +141,6 @@ All endpoints require an `x-api-key` header (the key you set in `.env`).
 You can test them with `curl`:
 
 curl -H "x-api-key: your-api-key" "http://13.43.73.157/api/journeys/services"
-text
 
 
 ---
@@ -162,20 +153,6 @@ Select a **service**, **direction**, and **stop code** – the page will display
 ![Example arrival comparison chart](screenshots/chart-example.png)  
 *(Replace with your own screenshot)*
 
----
-
-## 🧪 Testing & code quality
-
-- **ETL**: Minimal tests (you can extend with `pytest`).  
-- **Linting**: Python code is linted with [Ruff](https://github.com/astral-sh/ruff). Run this command in the `etl` folder:
-
-ruff check .
-text
-
-
-- **API / Frontend**: No formal tests yet – but the structure is ready for Jest / React Testing Library.
-
-(CI/CD not yet implemented – this is a planned improvement.)
 
 ---
 

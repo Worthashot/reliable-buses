@@ -7,6 +7,7 @@ Created on Mon Feb 23 16:33:42 2026
 import json
 import pickle
 import sqlite3
+from pathlib import Path
 
 from .api_manager import APIManager
 
@@ -23,7 +24,12 @@ class LondonTimetableManager:
         self.api_manager = APIManager()
 
     def _init_db(self):
-        with sqlite3.connect(self.cache_db_location, timeout=10) as conn:
+        database_name = "timetablesLondonBasicCache.db"
+        file_path = Path.cwd() / self.cache_db_location
+        print(file_path)
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path = file_path / database_name
+        with sqlite3.connect(file_path, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS timetablesLondonBasicCache (
                     id INTEGER PRIMARY KEY,

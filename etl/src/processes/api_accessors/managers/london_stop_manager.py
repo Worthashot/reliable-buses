@@ -46,7 +46,11 @@ class LondonStopManager:
         self.api_manager = APIManager()
 
     def _init_db(self):
-        with sqlite3.connect(self.cache_db_location, timeout=10) as conn:
+        database_name = "stopsLondonBasicCache.db"
+        file_path = Path.cwd() / self.cache_db_location
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path = file_path / database_name
+        with sqlite3.connect(file_path, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS stopsLondonBasicCache (
                     id INTEGER PRIMARY KEY,
@@ -57,14 +61,14 @@ class LondonStopManager:
             conn.execute("PRAGMA journal_mode=WAL")
 
     def download_stops_csv(self, logger):
-        filename = "stops.csv"
+        file_name = "stops.csv"
         try:
             # Create the target directory if it doesn't exist
-            Path(self.stop_csv_location).mkdir(parents=True, exist_ok=True)
+            file_path = Path.cwd() / self.stop_csv_location
+            #/ self.stop_csv_location
+            Path(file_path).mkdir(parents=True, exist_ok=True)
 
-            # Full path for the output file
-            file_path = Path(self.stop_csv_location) / filename
-
+            file_path = file_path / file_name
             # Send GET request to the API (stream=True for large files)
             with requests.get(self.stop_csv_url, stream=True) as response:
                 response.raise_for_status()  # Raise an error for bad status codes
@@ -79,10 +83,10 @@ class LondonStopManager:
 
         except requests.exceptions.RequestException as e:
             logger.exception(f"Error downloading the file: {e!r}")
-            return False
+            raise
         except OSError as e:
             logger.exception(f"Error writing the file: {e!r}")
-            return False
+            raise
 
     def update_daily_stops(self, logger):
         try:

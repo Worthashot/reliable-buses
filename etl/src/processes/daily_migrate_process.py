@@ -22,7 +22,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
     while not process_shutdown_event.is_set():
         # First, wait until it is time to migrate
         now = datetime.datetime.now(ZoneInfo("Europe/London"))
-        target = datetime.datetime.combine(now.date(), datetime.time(3, 0, 0))
+        target = datetime.datetime.combine(now.date(), datetime.time(3, 0, 0), tzinfo=ZoneInfo("Europe/London"))
         if now >= target:
             target += datetime.timedelta(days=1)
         logger.info(

@@ -6,7 +6,7 @@ Created on Sun Jun  7 14:17:54 2026
 
 from pathlib import Path
 
-import dill
+import dill  # type: ignore
 
 from .processes.api_accessors.managers.london_arrival_manager import (
     LondonArrivalManager,

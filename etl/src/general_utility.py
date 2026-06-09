@@ -4,10 +4,11 @@ Created on Sun Jun  7 14:31:48 2026
 @author: Cameron
 """
 
-import mmap
+import os
 from multiprocessing import Queue
-from pathlib import Path
 from queue import Empty
+
+import psutil
 
 
 def drain_queue(q: Queue):
@@ -21,13 +22,8 @@ def drain_queue(q: Queue):
     return items
 
 
-def get_memory_usage():
-    with Path("/proc/self/statm").open() as f:
-        fields = f.read().split()
-        rss_pages = int(fields[1])
-        page_size = mmap.PAGESIZE
-        return rss_pages * page_size
-
+def get_memory_usage() -> int:
+    return psutil.Process(os.getpid()).memory_info().rss
 
 class InvalidEnvironmentVariablesError(Exception):
     pass
@@ -44,8 +40,9 @@ def verify_environment_variables(
     journeys_basic_inactive_cache_location,
     stops_basic_cache_location,
     timetables_basic_cache_location,
+    savestate_location,
     logger,
-) -> tuple[str, str, str, str, str, str, str, str, str, str]:
+) -> tuple[str, str, str, str, str, str, str, str, str, str, str]:
 
     if not isinstance(bus_project_url, str):
         logger.exception(
@@ -124,7 +121,14 @@ def verify_environment_variables(
         raise InvalidEnvironmentVariablesError(
             "TIMETABLES_BASIC_CACHE_LOCATION is not a string"
         )
-
+    if not isinstance(savestate_location, str):
+        logger.exception(
+            "Critical Error in verify_environment_variables: SAVESTATE_LOCATION is not a valid string\n"
+            + "Check environment variables and restart."
+        )
+        raise InvalidEnvironmentVariablesError(
+            "SAVESTATE_LOCATION is not a string"
+        )
     return (
         bus_project_url,
         bus_project_key,
@@ -136,4 +140,5 @@ def verify_environment_variables(
         journeys_basic_inactive_cache_location,
         stops_basic_cache_location,
         timetables_basic_cache_location,
+        savestate_location,
     )

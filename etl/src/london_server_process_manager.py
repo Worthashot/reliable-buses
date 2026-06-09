@@ -11,7 +11,7 @@ from multiprocessing import Queue
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 from .app_state import AppState
 from .general_utility import drain_queue, get_memory_usage, verify_environment_variables
@@ -65,7 +65,7 @@ class LondonServerProcessManager:
         )
         stops_basic_cache_location = os.getenv("STOPS_BASIC_CACHE_LOCATION")
         timetables_basic_cache_location = os.getenv("TIMETABLES_BASIC_CACHE_LOCATION")
-
+        savestate_location = os.getenv("SAVESTATE_LOCATION")
         (
             self.bus_project_url,
             self.bus_project_key,
@@ -77,6 +77,7 @@ class LondonServerProcessManager:
             self.journeys_basic_inactive_cache_location,
             self.stops_basic_cache_location,
             self.timetables_basic_cache_location,
+            self.savestate_location
         ) = verify_environment_variables(
             bus_project_url,
             bus_project_key,
@@ -88,6 +89,7 @@ class LondonServerProcessManager:
             journeys_basic_inactive_cache_location,
             stops_basic_cache_location,
             timetables_basic_cache_location,
+            savestate_location,
             self.logger,
         )
 
@@ -106,7 +108,7 @@ class LondonServerProcessManager:
         self.processes = []
         self.arrival_thread = None
         try:
-            self.state = AppState.load()
+            self.state = AppState.load(self.savestate_location)
             print("Loaded previous state")
         except FileNotFoundError:
             print("No previous state detected, starting fresh ")
@@ -118,7 +120,7 @@ class LondonServerProcessManager:
         if self.state.must_restart:
             print("Invalid save state detected, starting fresh ")
             self.startup_from_scratch()
-        self.state.save()
+        self.state.save(self.savestate_location)
 
     def startup_from_scratch(self):
         try:
@@ -215,7 +217,7 @@ class LondonServerProcessManager:
     def handle_critical_error(self):
 
         # 1. Delete saved state to avoid loading corrupted data next time
-        AppState.delete()
+        AppState.delete(self.savestate_location)
         self.logger.info("Deleted corrupted state file.")
 
         # 2. Terminate all child processes (if any)
@@ -234,7 +236,7 @@ class LondonServerProcessManager:
         self.logger.info("Saving state")
         self.save_coordinator.begin_save()
         try:
-            self.state.save()
+            self.state.save(self.savestate_location)
         except Exception as e:
             self.logger.exception("Critical Error in save_state\n" + repr(e))
             url = self.bus_project_url + "/mail/send_error_email"
@@ -320,7 +322,7 @@ class LondonServerProcessManager:
         while not self.shutdown_event.is_set():
             # Compute next run at 4:00 AM
             now = datetime.datetime.now(ZoneInfo("Europe/London"))
-            target = datetime.datetime.combine(now.date(), datetime.time(4, 0, 0))
+            target = datetime.datetime.combine(now.date(), datetime.time(4, 0, 0), tzinfo=ZoneInfo("Europe/London"))
             if now >= target:
                 target += datetime.timedelta(days=1)
             sleep_seconds = (target - now).total_seconds()

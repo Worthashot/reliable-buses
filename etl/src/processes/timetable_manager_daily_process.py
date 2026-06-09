@@ -22,7 +22,7 @@ def timetable_manager_daily_process(
     logger.info("Started TimetableManager daily process")
     while not process_shutdown_event.is_set():
         now = datetime.datetime.now(ZoneInfo("Europe/London"))
-        target = datetime.datetime.combine(now.date(), datetime.time(1, 0, 0))
+        target = datetime.datetime.combine(now.date(), datetime.time(1, 0, 0), tzinfo=ZoneInfo("Europe/London"))
         if now >= target:
             target += datetime.timedelta(days=1)
         logger.info(

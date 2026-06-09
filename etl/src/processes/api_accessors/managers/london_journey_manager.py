@@ -24,6 +24,7 @@ import pickle
 import sqlite3
 import time
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import dateutil.parser
@@ -53,8 +54,13 @@ class LondonJourneyManager:
         # self.test_df_2 = pd.DataFrame()
         # self.test_df_3 = pd.DataFrame()
 
+
     def _init_db(self):
-        with sqlite3.connect(self.unuploaded_cache_db_location, timeout=10) as conn:
+        database_name = "journeysLondonBasicUnuploadedCache.db"
+        file_path = Path.cwd() / self.unuploaded_cache_db_location
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path = file_path / database_name
+        with sqlite3.connect(file_path, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS journeysLondonBasicUnuploadedCache (
                     id INTEGER PRIMARY KEY,
@@ -64,7 +70,12 @@ class LondonJourneyManager:
             """)
             conn.execute("PRAGMA journal_mode=WAL")
 
-        with sqlite3.connect(self.inactive_cache_db_location, timeout=10) as conn:
+
+        database_name = "journeysLondonBasicInactiveCache.db"
+        file_path = Path.cwd() / self.inactive_cache_db_location
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path = file_path / database_name
+        with sqlite3.connect(file_path, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS journeysLondonBasicInactiveCache (
                     id INTEGER PRIMARY KEY,

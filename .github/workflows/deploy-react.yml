@@ -24,6 +24,7 @@ jobs:
           cache-dependency-path: website/package-lock.json
 
       - name: Create .env file
+        working-directory: ./website
         run: |
           echo "VITE_BUS_PROJECT_URL=${{ secrets.VITE_BUS_PROJECT_URL }}" >> .env
           echo "VITE_BUS_PROJECT_KEY=${{ secrets.VITE_BUS_PROJECT_KEY }}" >> .env

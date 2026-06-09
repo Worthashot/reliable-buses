@@ -16,15 +16,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'   # Use your project's Node version
+          node-version: '24'   # Use your project's Node version
           cache: 'npm'
+          cache-dependency-path: website/package-lock.json
 
       # 3. Install dependencies and build the React app
       - name: Install dependencies
+        working-directory: ./website
         run: npm ci
 
       - name: Build React app
-        working-directory: website
+        working-directory: ./website
         run: npm run build   # Creates 'build' folder (or 'dist' - adjust as needed)
 
       # 4. Deploy to server using rsync over SSH

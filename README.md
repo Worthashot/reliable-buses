@@ -92,7 +92,7 @@ Go into the `etl` folder, copy `.env.example` to `.env`, then edit the file with
 
 **For the API:**  
 Go into the `api` folder, copy `.env.example` to `.env`, then edit the file. Feel free to use the example database, as it should fill itself out as the program runs, 
-otherwise, make sure you have an entry in api_keys with ADMIN privilage.
+otherwise, make sure you have an entry in api_keys with ADMIN privilege.
 
 
 
@@ -101,7 +101,7 @@ Go into the `website` folder, copy `.env.example` to `.env`, then set the API ba
 
 ### 3. Set up the NestJS API
 Open a terminal in the `api` folder.
-First, crete a Virtual Environmen For the python scripts used by the API:
+First, create a Virtual Environment For the python scripts used by the API:
 
 python3 -m venv venv
 
@@ -173,7 +173,7 @@ Select a **service**, **direction**, and **stop code** – the page will display
 
 ## 🔮 Future improvements
 
-- Write comprehensive tests for both the ETL scrips and API
+- Write comprehensive tests for both the ETL scripts and API
 - Expand the website to include long term averages, and transfer predictions
 - Create a mobile App version
 
@@ -194,3 +194,4 @@ MIT © [Cameron Stephen](https://github.com/Worthashot)
 ---
 
 **Built as a portfolio piece – real‑time bus predictions using open data.**
+

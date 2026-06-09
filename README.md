@@ -66,7 +66,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 |-----------|--------------|
 | **ETL + Scheduler** | Python 3.11, `requests`, `pandas`, `sqlite3`, `threading`, `multiprocessing`, Ruff |
 | **API** | NestJS, TypeScript, SQLite, API key authentication |
-| **Frontend** | React 18, Axios (or `fetch`) |
+| **Frontend** | React 18, fetch |
 | **Database** | SQLite (shared between ETL and API) |
 | **Deployment** | Live server (no Docker – traditional process management) |
 | **CI/CD** | GitHub Actions (lint, build, test, deploy) |

@@ -110,21 +110,20 @@ pip install -r requirements.txt
 
 Then run:
 
--npm install
--npm run build
--npm run start
+- npm install
+- npm run build
+- npm run start
 Or, if using pm2
--pm2 reload ecosystem.config.js
+- pm2 reload ecosystem.config.js
 
 The API will run on `http://localhost:3000` (or the port you set in `.env`).
 
 ### 4. Set up the Python ETL + Scheduler
 Open a terminal in the `etl` folder, then run:
 
-python3 -m venv venv
-
-source venv/bin/activate # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
+- python3 -m venv venv
+- source venv/bin/activate # On Windows: .\venv\Scripts\activate
+- pip install -r requirements.txt
 
 **Start the scheduler** (this will run the minute‑by‑minute live capture, 2 hourly validation, and nightly jobs):
 
@@ -134,8 +133,9 @@ python3 -m etl
 
 ### 5. Set up the React frontend
 Open a terminal in the `website` folder, then run:
--npm install
--npm run build
+
+- npm install
+- npm run build
 
 Serve the `dist` folder (e.g., with  nginx).
 
@@ -153,9 +153,9 @@ All endpoints require an `x-api-key` header (the key you set in `.env`).
 
 You can test them with `curl`:
 
-curl -H "x-api-key: your-api-key" "http://reliablebuses.com//api/journeys/services"
-curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/stop/name_from_service?service=100&direction=inbound"
-curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/log/arrival_image?service=100&direction=inbound&stop_code=490002076Y"
+- curl -H "x-api-key: your-api-key" "http://reliablebuses.com//api/journeys/services"
+- curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/stop/name_from_service?service=100&direction=inbound"
+- curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/log/arrival_image?service=100&direction=inbound&stop_code=490002076Y"
 
 for example of demo api calls, replace "your-api-key" with the public demo api key - MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQClwEBUGdM1IvWT
 

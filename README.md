@@ -78,7 +78,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 ### Prerequisites
 - Git
 - Python 3.12.3+
-- Node.js 18+ and npm
+- Node.js 24+ and npm
 - SQLite3 (usually included with Python)
 
 ### 1. Clone the repository

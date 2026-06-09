@@ -1,10 +1,6 @@
-- name: Create .env file
-  run: |
-    echo "VITE_BUS_PROJECT_URL=${{ secrets.VITE_BUS_PROJECT_URL }}" >> .env
-    echo "VITE_BUS_PROJECT_KEY=${{ secrets.VITE_BUS_PROJECT_KEY }}" >> .env
-    # Add all your React env vars here
 
-- name: Deploy React Website
+
+name: Deploy React Website
 
   on:
     push:
@@ -14,11 +10,11 @@
     build-and-deploy:
       runs-on: ubuntu-latest
       steps:
-        # 1. Checkout the code
+        # Checkout the code
         - name: Checkout code
           uses: actions/checkout@v4
 
-        # 2. Setup Node.js
+        # Setup Node.js
         - name: Setup Node.js
           uses: actions/setup-node@v4
           with:
@@ -26,7 +22,13 @@
             cache: 'npm'
             cache-dependency-path: website/package-lock.json
 
-        # 3. Install dependencies and build the React app
+        -name: Create .env file
+          run: |
+            echo "VITE_BUS_PROJECT_URL=${{ secrets.VITE_BUS_PROJECT_URL }}" >> .env
+            echo "VITE_BUS_PROJECT_KEY=${{ secrets.VITE_BUS_PROJECT_KEY }}" >> .env
+
+
+        # Install dependencies and build the React app
         - name: Install dependencies
           working-directory: ./website
           run: npm ci
@@ -35,7 +37,7 @@
           working-directory: ./website
           run: npm run build   # Creates 'build' folder (or 'dist' - adjust as needed)
 
-        # 4. Deploy to server using rsync over SSH
+        # Deploy to server using rsync over SSH
         - name: Deploy to server
           uses: burnett01/rsync-deployments@7.0.1   # A popular rsync action
           with:

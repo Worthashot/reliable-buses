@@ -24,6 +24,7 @@ jobs:
         run: npm ci
 
       - name: Build React app
+        working-directory: website
         run: npm run build   # Creates 'build' folder (or 'dist' - adjust as needed)
 
       # 4. Deploy to server using rsync over SSH
@@ -31,7 +32,7 @@ jobs:
         uses: burnett01/rsync-deployments@7.0.1   # A popular rsync action
         with:
           switches: -avz --delete   
-          path: dist/              
+          path: website/dist/              
           remote_path: /home/ubuntu/reliablebuses/website
           remote_host: ${{ secrets.SERVER_HOST }}
           remote_user: ${{ secrets.SERVER_USER }}

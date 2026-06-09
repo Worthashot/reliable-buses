@@ -69,7 +69,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 | **Frontend** | React 18, fetch |
 | **Database** | SQLite (shared between ETL and API) |
 | **Deployment** | Live server (no Docker – traditional process management) |
-| **CI/CD** | GitHub Actions (lint, build, test, deploy) |
+| **CI/CD** | GitHub Actions |
 
 ---
 

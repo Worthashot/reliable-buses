@@ -15,6 +15,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /path/to/your/etl-script
+            cd /home/ubuntu/reliablebuses/etl
             git pull origin main
-            sudo systemctl restart my-etl.service
+            sudo systemctl restart etl.service

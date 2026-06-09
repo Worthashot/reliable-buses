@@ -5,9 +5,7 @@ markdown
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![NestJS](https://img.shields.io/badge/NestJS-10-red)](https://nestjs.com)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org)
-[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-api.yml)
-[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-etl.yml)
-[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-react.yml)
+[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 > **Live demo:** [reliablebuses.com](http://reliablebuses.com)
@@ -96,17 +94,19 @@ Go into the `etl` folder, copy `.env.example` to `.env`, then edit the file with
 Go into the `api` folder, copy `.env.example` to `.env`, then edit the file. Feel free to use the example database, as it should fill itself out as the program runs, 
 otherwise, make sure you have an entry in api_keys with ADMIN privilage.
 
-For python scripts used by the API, make a Virtual Environment by
 
-python3 -m venv venv
-source venv/bin/activate # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
 
 **For the website:**  
 Go into the `website` folder, copy `.env.example` to `.env`, then set the API base URL.
 
 ### 3. Set up the NestJS API
-Open a terminal in the `api` folder, then run:
+Open a terminal in the `api` folder, First, a Virtual Environmen For the python scripts used by the API:
+
+python3 -m venv venv
+source venv/bin/activate # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+
+Then run:
 
 npm install
 npm run build
@@ -164,18 +164,17 @@ for example of demo api calls, replace "your-api-key" with the public demo api k
 Open the frontend URL (e.g., `http://localhost:5173` or your live domain).  
 Select a **service**, **direction**, and **stop code** – the page will display an image similar to this:
 
-![Example arrival comparison chart](screenshots/chart-example.png)  
-*(Replace with your own screenshot)*
+![Example arrival comparison chart](screenshots/website_example.png)  
 
 
 ---
 
 ## 🔮 Future improvements
 
-- Add a more robust scheduler (e.g., APScheduler) or migrate to Airflow for better observability.
-- Expand the frontend with interactive charts and real‑time updates.
-- Implement pagination and filtering on API endpoints.
-- Write comprehensive tests and set up GitHub Actions for CI/CD.
+- Write comprehensive tests for both the ETL scrips and API
+- Expand the website to include long term averages, and transfer predictions
+- Create a mobile App version
+
 
 ---
 

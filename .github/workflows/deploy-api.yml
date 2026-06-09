@@ -2,7 +2,7 @@ name: Deploy NestJS API (Server Build)
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy:

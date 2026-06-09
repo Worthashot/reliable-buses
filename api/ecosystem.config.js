@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'reliable-bususe-api', // Choose a descriptive name for your API
+      name: 'reliable-buses-api', // Choose a descriptive name for your API
       script: 'dist/main.js',
       instances: 'max', // Use all available CPU cores
       exec_mode: 'cluster',

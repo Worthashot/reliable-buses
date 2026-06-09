@@ -95,11 +95,13 @@ otherwise, make sure you have an entry in api_keys with ADMIN privilage.
 Go into the `frontend` folder, copy `.env.example` to `.env`, then set the API base URL.
 
 ### 3. Set up the NestJS API
-Open a terminal in the `backend` folder, then run:
+Open a terminal in the `api` folder, then run:
 
 npm install
 npm run build
-npm run start:prod # or start:dev for development
+npm run start
+Or, if using pm2
+pm2 reload ecosystem.config.js
 
 The API will run on `http://localhost:3000` (or the port you set in `.env`).
 

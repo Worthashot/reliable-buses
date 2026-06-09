@@ -5,8 +5,10 @@ markdown
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![NestJS](https://img.shields.io/badge/NestJS-10-red)](https://nestjs.com)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org)
-[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-api.yml)
+[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-etl.yml)
+[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy-react.yml)
 
 > **Live demo:** [reliablebuses.com](http://reliablebuses.com)
 

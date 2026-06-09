@@ -66,6 +66,7 @@ data/
 Thumbs.db
 desktop.ini
 build order.txt
+todo_files.txt
 
 # ===============================
 # Logs & temporary files

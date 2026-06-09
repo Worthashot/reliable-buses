@@ -100,9 +100,11 @@ otherwise, make sure you have an entry in api_keys with ADMIN privilage.
 Go into the `website` folder, copy `.env.example` to `.env`, then set the API base URL.
 
 ### 3. Set up the NestJS API
-Open a terminal in the `api` folder, First, a Virtual Environmen For the python scripts used by the API:
+Open a terminal in the `api` folder.
+First, crete a Virtual Environmen For the python scripts used by the API:
 
 python3 -m venv venv
+
 source venv/bin/activate # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 
@@ -120,6 +122,7 @@ The API will run on `http://localhost:3000` (or the port you set in `.env`).
 Open a terminal in the `etl` folder, then run:
 
 python3 -m venv venv
+
 source venv/bin/activate # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 

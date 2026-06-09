@@ -5,6 +5,7 @@ markdown
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![NestJS](https://img.shields.io/badge/NestJS-10-red)](https://nestjs.com)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org)
+[![CI/CD](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Worthashot/reliable-buses/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 > **Live demo:** [reliablebuses.com](http://reliablebuses.com)
@@ -55,6 +56,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 | **Backend** | NestJS with API key authentication, SQLite integration, and endpoints for services, stops, and image generation. |
 | **Frontend** | Minimal React app that fetches and displays a chart image – demonstrating API integration. |
 | **DevOps** | Environment‑based configuration (`.env`), linting with Ruff (Python), and a reproducible setup process. |
+| **CI/CD** | GitHub Actions automatically runs Ruff linting, builds the NestJS API, and deploys to the live server on every push to master |
 
 ---
 
@@ -67,6 +69,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 | **Frontend** | React 18, Axios (or `fetch`) |
 | **Database** | SQLite (shared between ETL and API) |
 | **Deployment** | Live server (no Docker – traditional process management) |
+| **CI/CD** | GitHub Actions (lint, build, test, deploy) |
 
 ---
 
@@ -75,7 +78,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 ### Prerequisites
 - Git
 - Python 3.12.3+
-- Node.js 18+ and npm
+- Node.js 24+ and npm
 - SQLite3 (usually included with Python)
 
 ### 1. Clone the repository

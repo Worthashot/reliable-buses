@@ -2,7 +2,7 @@ name: Deploy ETL Script
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   deploy:

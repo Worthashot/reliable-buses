@@ -15,7 +15,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/my-api
+            cd  /home/ubuntu/reliablebuses/api
             git pull origin master
             npm install
             npm run build

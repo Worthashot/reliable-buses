@@ -85,14 +85,20 @@ Use Git to clone your own fork of the repository, then navigate into the project
 Each component has an `.env.example` file. Copy it to `.env` and fill in your own values (especially API URL and keys for TfL).
 
 **For the ETL:**  
-Go into the `etl` folder, copy `.env.example` to `.env`, then edit the file with your TfL API credentials.
+Go into the `etl` folder, copy `.env.example` to `.env`, then edit the file with your TfL API credentials. To get TFL API credentials, go to [Transport for London](https://api-portal.tfl.gov.uk/)
 
 **For the API:**  
-Go into the `backend` folder, copy `.env.example` to `.env`, then edit the file. Feel free to use the example database, as it should fill itself out as the program runs, 
+Go into the `api` folder, copy `.env.example` to `.env`, then edit the file. Feel free to use the example database, as it should fill itself out as the program runs, 
 otherwise, make sure you have an entry in api_keys with ADMIN privilage.
 
-**For the frontend:**  
-Go into the `frontend` folder, copy `.env.example` to `.env`, then set the API base URL.
+For python scripts used by the API, make a Virtual Environment by
+
+python3 -m venv venv
+source venv/bin/activate # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+
+**For the website:**  
+Go into the `website` folder, copy `.env.example` to `.env`, then set the API base URL.
 
 ### 3. Set up the NestJS API
 Open a terminal in the `api` folder, then run:
@@ -108,25 +114,23 @@ The API will run on `http://localhost:3000` (or the port you set in `.env`).
 ### 4. Set up the Python ETL + Scheduler
 Open a terminal in the `etl` folder, then run:
 
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 
 **Start the scheduler** (this will run the minute‑by‑minute live capture, 2 hourly validation, and nightly jobs):
 
-python scheduler.py # or your main scheduler entry point
+python3 -m etl
 
 
 
 ### 5. Set up the React frontend
-Open a terminal in the `frontend` folder, then run:
+Open a terminal in the `website` folder, then run:
 
 npm install
 npm run build
 
-
-
-Serve the `build` folder (e.g., with `serve -s build` or nginx).
+Serve the `dist` folder (e.g., with  nginx).
 
 ---
 
@@ -136,14 +140,17 @@ All endpoints require an `x-api-key` header (the key you set in `.env`).
 
 | Method | Endpoint | Description | Example |
 |--------|----------|-------------|---------|
-| GET | `/api/journeys/services` | List all available bus services | `http://13.43.73.157/api/journeys/services` |
+| GET | `/api/journeys/services` | List all available bus services | `http://reliablebuses/api/journeys/services` |
 | GET | `/api/stop/name_from_service` | Get stops for a given service + direction | `?service=123&direction=inbound` |
 | GET | `/api/log/arrival_image` | Retrieve chart image comparing actual vs timetabled arrivals | `?service=123&direction=inbound&stop_code=490008660N` |
 
 You can test them with `curl`:
 
-curl -H "x-api-key: your-api-key" "http://13.43.73.157/api/journeys/services"
+curl -H "x-api-key: your-api-key" "http://reliablebuses.com//api/journeys/services"
+curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/stop/name_from_service?service=100&direction=inbound"
+curl -H "x-api-key: your-api-key" "http://reliablebuses.com/api/log/arrival_image?service=100&direction=inbound&stop_code=490002076Y"
 
+for example of demo api calls, replace "your-api-key" with the public demo api key - MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQClwEBUGdM1IvWT
 
 ---
 

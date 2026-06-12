@@ -8,7 +8,7 @@ import os
 from multiprocessing import Queue
 from queue import Empty
 
-import psutil
+import psutil  # type: ignore
 
 
 def drain_queue(q: Queue):

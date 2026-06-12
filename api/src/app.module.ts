@@ -54,7 +54,16 @@ const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
         JourneyBasicEntity, ArrivalBasicEntity, StopBasicEntity, TimetableBasicEntity,
         JourneyEntity, ArrivalEntity, StopEntity, TimetableInformationEntity, TimetableEntity,
         LogEntity],
-      synchronize: false, 
+      synchronize: false,
+          extra: {
+      busyTimeout: 5000, // milliseconds
+      },
+      onConnect: async (connection) => {
+      await connection.query('PRAGMA journal_mode = WAL');
+      await connection.query('PRAGMA synchronous = NORMAL');
+      console.log('SQLite WAL mode enabled');
+    }
+
       })
     }),
 

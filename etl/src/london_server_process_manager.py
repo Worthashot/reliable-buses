@@ -11,7 +11,7 @@ from multiprocessing import Queue
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv # type: ignore
+from dotenv import load_dotenv  # type: ignore
 
 from .app_state import AppState
 from .general_utility import drain_queue, get_memory_usage, verify_environment_variables

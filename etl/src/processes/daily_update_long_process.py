@@ -20,8 +20,8 @@ def daily_update_long_process(
     logger = setup_process_logging()
     logger.info("Started daily_update_long_process process")
     try:
-        journey_manager.UpdateJourneys(logger)
-        logger.info("journey_manager.UpdateJourneys() completed")
+        journey_manager.update_journeys(logger)
+        logger.info("journey_manager.update_journeys() completed")
         if process_shutdown_event.is_set():
             logger.info("Process shutdown recieved, terminating")
             return
@@ -30,8 +30,8 @@ def daily_update_long_process(
         if process_shutdown_event.is_set():
             logger.info("Process shutdown recieved, terminating")
             return
-        stop_manager.updateDailyStops(logger)
-        logger.info("StopsManager.updateDailyStops() completed")
+        stop_manager.update_daily_stops(logger)
+        logger.info("StopsManager.update_daily_stops() completed")
 
     except Exception as e:
         logger.exception("Critical Error in daily_update_long_process:\n" + repr(e))

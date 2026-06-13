@@ -16,7 +16,9 @@ import { TimetableEntity } from 'src/timetable/entities/timetable.entity';
 import { TimetableInformationEntity } from 'src/timetable/entities/timetable_information_entity';
 import { Log} from 'src/log/interfaces/log.interface';
 import { createHash } from 'crypto';
-
+import { retryOnBusy
+  
+ } from 'src/common/retry.on.busy';
 @Injectable()
 export class MigrationService {
   private readonly logger = new Logger(MigrationService.name);

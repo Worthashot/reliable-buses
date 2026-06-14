@@ -15,7 +15,7 @@ import { JourneyEntity } from 'src/journey/entities/journey.entity';
 import { StopBasicEntity } from './entities/stop.basic.entity';
 import { ArrivalBasicEntity } from './entities/arrival.basic.entity';
 import { TimetableBasicEntity } from './entities/timetable.basic.entity';
-
+import { MigrationService } from 'src/migration/migration.service';
 @Module({
 imports: [
     TypeOrmModule.forFeature([JourneyEntity,

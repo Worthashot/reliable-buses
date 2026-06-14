@@ -21,5 +21,6 @@ import { StopBasicEntity } from '../basic/entities/stop.basic.entity';
 
     controllers: [MigrationController],
     providers: [MigrationService],
+    exports: [MigrationService],
 })
 export class MigrationModule {}

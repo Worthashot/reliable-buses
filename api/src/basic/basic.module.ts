@@ -24,6 +24,6 @@ imports: [
   ],
 
     controllers: [BasicController],
-    providers: [BasicService],
+    providers: [BasicService, MigrationService],
 })
 export class BasicModule {}

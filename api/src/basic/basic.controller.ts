@@ -8,10 +8,14 @@ import { ArrivalBasicModifyElementDto } from './dto/arrival_basic_modify_element
 import { TimetableBasicAddElementDto } from './dto/timetable.basic.add.element.dto';
 import type { Response } from 'express';
 import { Res } from '@nestjs/common';
+import { MigrationService } from 'src/migration/migration.service';
+import { ServiceUnavailableException } from '@nestjs/common';
 
 @Controller('basic')
 export class BasicController {
-    constructor (private basicService: BasicService) {}
+    constructor (private basicService: BasicService,
+      private readonly migrationService: MigrationService,
+    ) {}
     private readonly logger = new Logger(BasicController.name);
 
   @Admin()
@@ -38,6 +42,14 @@ export class BasicController {
   @Admin()
   @Post('new_journeys')
   async addNewJourneysBasic(@Body() elements: JourneyBasicAddElementDto[]) {
+    if (this.migrationService.check_migrating()[0] === "1") {
+        throw new ServiceUnavailableException({
+          statusCode: 503,
+          error: 'Service Unavailable',
+          message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+          retryAfter: 3600,
+        });  
+      }
     this.logger.log('checking journeys_basic table exists in database');
     await this.basicService.createJourneysBasicTable()
     this.logger.log('adding journeys_basic to database');
@@ -51,6 +63,14 @@ export class BasicController {
   @Admin()
   @Post('new_stops')
   async addNewStopsBasic(@Body() elements: StopBasicAddElementDto[]) {
+    if (this.migrationService.check_migrating()[0] === "1") {
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        error: 'Service Unavailable',
+        message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+        retryAfter: 3600,
+      });  
+    }
     this.logger.log('checking stops_basic table exists in database');
     await this.basicService.createStopsBasicTable()
     this.logger.log('adding stops_basic to database');
@@ -62,6 +82,14 @@ export class BasicController {
   @Admin()
   @Post('new_arrivals')
   async addNewArrivalsBasic(@Body() elements: ArrivalBasicAddElementDto[]) {
+    if (this.migrationService.check_migrating()[0] === "1") {
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        error: 'Service Unavailable',
+        message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+        retryAfter: 3600,
+      });  
+    }
     this.logger.log('checking arrivals_basic table exists in database');
     await this.basicService.createArrivalsBasicTable()
     this.logger.log('adding arrivals_basic to database');
@@ -72,7 +100,15 @@ export class BasicController {
 
   @Admin()
   @Post('new_timetables')
-  async addNewTimetablesBasic(@Body() elements: TimetableBasicAddElementDto[]) {      
+  async addNewTimetablesBasic(@Body() elements: TimetableBasicAddElementDto[]) {     
+    if (this.migrationService.check_migrating()[0] === "1") {
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        error: 'Service Unavailable',
+        message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+        retryAfter: 3600,
+      });  
+    } 
     this.logger.log('checking timetable_basic exists in database');
     await this.basicService.createTimetablesBasicTable()
     this.logger.log('adding timetable_basic to database');
@@ -133,6 +169,14 @@ export class BasicController {
   @Admin()
   @Delete('delete_matching_invalid_arrivals')
   async deleteMatchingArrivalsBasic(@Body() elements: ArrivalBasicModifyElementDto[]) {
+    if (this.migrationService.check_migrating()[0] === "1") {
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        error: 'Service Unavailable',
+        message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+        retryAfter: 3600,
+      });  
+    }
     this.logger.log('deleting invalid arrival_basic entries');
     await this.basicService.deleteMatchingArrivalsBasic(elements)
     this.logger.log('arrival_basic entries deleted successfully');
@@ -158,6 +202,14 @@ export class BasicController {
   @Admin()
   @Delete('delete_old')
   async deleteOldBasicEntities(@Res() res: Response) {
+    if (this.migrationService.check_migrating()[0] === "1") {
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        error: 'Service Unavailable',
+        message: 'Database is temporarily busy with a maintenance task. Please retry later.',
+        retryAfter: 3600,
+      });  
+    }
     this.basicService.set_deleting()
     res.status(202).json({ message: 'Task accepted' });
 

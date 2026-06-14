@@ -24,7 +24,7 @@ export class MigrationService {
   private readonly logger = new Logger(MigrationService.name);
 
   //stores the status for migrating
-  //0 -- succes
+  //0 -- success
   //1 -- currently migrating
   //2 -- failed
   private is_migrating: string[] = ["0"]
@@ -53,12 +53,10 @@ export class MigrationService {
     
   ){}
   async testTimetableMerge(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
     try {
-      await this.createTimetablesInformationTable(queryRunner);
-      await this.createTimetableTable(queryRunner);
-      await this.performMigrationTimetables(queryRunner);
+      await this.createTimetablesInformationTable();
+      await this.createTimetableTable();
+      await this.performMigrationTimetables();
 
       
       console.log('✅ Migration completed successfully!');
@@ -66,40 +64,36 @@ export class MigrationService {
       console.error('❌ Migration failed:', error);
       throw error;
     } finally {
-      console.log('releasing queryRunner');
-      await queryRunner.release();
     }
 
   }
 
   async dailyMigration(): Promise<void>{
     this.is_migrating = ["1"]
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
 
     try {
 
-      await this.createStopsTable(queryRunner);
+      await retryOnBusy(async () => this.createStopsTable());
 
-      await this.createjourneysTable(queryRunner);
+      await retryOnBusy(async () => this.createjourneysTable());
 
-      await this.createLogsTable(queryRunner);
+      await retryOnBusy(async () => this.createLogsTable());
 
-      await this.createArrivalsTable(queryRunner);
+      await retryOnBusy(async () => this.createArrivalsTable());
 
-      await this.createTimetablesInformationTable(queryRunner);
+      await retryOnBusy(async () => this.createTimetablesInformationTable());
 
-      await this.createTimetableTable(queryRunner);
+      await retryOnBusy(async () => this.createTimetableTable());
 
-      await this.performMigrationStops(queryRunner);
+      await this.performMigrationStops();
 
-      await this.performMigrationjourneys(queryRunner);
+      await this.performMigrationjourneys();
 
-      await this.performPopulationLogJunctions(queryRunner);
+      await this.performPopulationLogJunctions();
       
-      await this.performMigrationArrivals(queryRunner);
+      await this.performMigrationArrivals();
 
-      await this.performMigrationTimetables(queryRunner);
+      await this.performMigrationTimetables();
     
       this.logger.log('✅ Migration completed successfully!');
       this.is_migrating = ["0"]
@@ -107,11 +101,7 @@ export class MigrationService {
       this.logger.error('❌ Migration failed:', error);
       this.is_migrating = ["2"]
       throw error;
-    } finally {
-      this.logger.log('releasing queryRunner');
-      await queryRunner.release();
     }
-
       await this.countLogTimetables();
   }
 
@@ -139,7 +129,9 @@ export class MigrationService {
     return this.is_migrating
   }
 
-  async createStopsTable(queryRunner : any): Promise<void>{
+  async createStopsTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table stops in database Live');
 
     // Check if log table exists, if not create it
@@ -180,10 +172,15 @@ export class MigrationService {
     this.logger.error('Migration failed:', error);
     await queryRunner.rollbackTransaction();
     throw error;   
-  }
+            } finally {
+        await queryRunner.release();
+          }
+
   }
 
-  async createjourneysTable(queryRunner : any): Promise<void>{
+  async createjourneysTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table journeys in database Live');
 
 
@@ -236,10 +233,15 @@ export class MigrationService {
       this.logger.error('Migration failed:', error);
       await queryRunner.rollbackTransaction();
       throw error;   
-  }
+            } finally {
+        await queryRunner.release();
+          }
+
 }
   
-  async createLogsTable(queryRunner : any): Promise<void>{
+  async createLogsTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table logs in database Live');
 
     // Check if log table exists, if not create it
@@ -285,10 +287,15 @@ export class MigrationService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;   
-    }
+              } finally {
+        await queryRunner.release();
+          }
+
   }
 
-  async createArrivalsTable(queryRunner : any): Promise<void>{
+  async createArrivalsTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table arrivals in database Live');
   
       // Check if log table exists, if not create it
@@ -326,11 +333,16 @@ export class MigrationService {
       this.logger.error('Migration failed:', error);
       await queryRunner.rollbackTransaction();
       throw error;   
-    }
+              } finally {
+        await queryRunner.release();
+          }
+
 
   } 
 
-  async createTimetablesInformationTable(queryRunner : any): Promise<void>{
+  async createTimetablesInformationTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table timetable_information in database Live');
   
     try{
@@ -372,11 +384,16 @@ export class MigrationService {
       this.logger.error('Migration failed:', error);
       await queryRunner.rollbackTransaction();
       throw error;   
-    }
+              } finally {
+        await queryRunner.release();
+          }
+
 
   } 
 
-  async createTimetableTable(queryRunner : any): Promise<void>{
+  async createTimetableTable(): Promise<void>{
+    const queryRunner = this.liveDataSource.createQueryRunner();
+    await queryRunner.connect();
     this.logger.log('Setting up table timetables in database Live');
   
       // Check if log table exists, if not create it
@@ -404,47 +421,60 @@ export class MigrationService {
       this.logger.error('Migration failed:', error);
       await queryRunner.rollbackTransaction();
       throw error;   
-    }
+          } finally {
+        await queryRunner.release();
+          }
 
   } 
   
-  async performMigrationStops(queryRunner : any): Promise<void>{
-    try {
+  async performMigrationStops(): Promise<void>{
       this.logger.log('Starting stops database migration...');
       let limit = 1000;
       let offset = 0
       let stopsBasic : StopBasic[];
-      do{
-        // Read from old database
-        await queryRunner.startTransaction();
-        stopsBasic = await queryRunner.query(
+      let hasMoreRows = true;
+
+      while (hasMoreRows) {
+
+        const readRunner = this.liveDataSource.createQueryRunner();
+        await readRunner.connect();
+        try{
+        stopsBasic = await readRunner.query(
           'SELECT * FROM stops_basic ORDER BY ATCOCode LIMIT ? OFFSET ?',
           [limit, offset]
         );
+      } finally {
+        await readRunner.release();
+      }
         if (stopsBasic === undefined || stopsBasic.length == 0) {
-          await queryRunner.commitTransaction();
+          hasMoreRows = false;
           break;
         }
-        
-        this.isStopBasicArray(stopsBasic)
-        await this.migrateStopsBatch(stopsBasic, queryRunner);
-        offset += limit
-        await queryRunner.commitTransaction();
-      } while (stopsBasic.length === limit)
 
-      
-      this.logger.log('Migration completed successfully!');
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;
+        this.isStopBasicArray(stopsBasic);
+
+        await retryOnBusy(async () => {
+        const writeRunner = this.liveDataSource.createQueryRunner();
+        await writeRunner.connect();
+        await writeRunner.startTransaction();
+        try{
+          await this.migrateStopsBatch(stopsBasic, writeRunner);        
+          await writeRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await writeRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await writeRunner.release();
+        }
+      });
     }
   }
+
 
   async migrateStopsBatch(stopsBasic: StopBasic[], queryRunner: any): Promise<void> {
     this.logger.log('Starting batch stop migration...');
     try {
-
 
       // Insert into new database
       const values = stopsBasic.flatMap(stopBasic => 
@@ -467,19 +497,21 @@ export class MigrationService {
     }
   }
 
-  async performMigrationjourneys(queryRunner : any): Promise<void>{
-    try {
-      await queryRunner.startTransaction();
-      this.logger.log('Starting journeys database migration...');
-      let limit = 1000;
-      let offset = 0
-      let journeyBasic : JourneyBasic[];
-
-      await queryRunner.query(
+  async performMigrationjourneys(): Promise<void>{
+    this.logger.log('Starting journeys database migration...');
+    let limit = 1000;
+    let offset = 0
+    let journeyBasic : JourneyBasic[];
+    await retryOnBusy(async () => {
+      const writeRunner = this.liveDataSource.createQueryRunner();
+      await writeRunner.connect();
+      await writeRunner.startTransaction();
+      try{
+        writeRunner.query(
         `DROP TABLE IF EXISTS temp_batch`
         );
 
-      await queryRunner.query(
+        await writeRunner.query(
         `CREATE TEMPORARY TABLE temp_batch AS
         SELECT *
         FROM (
@@ -489,32 +521,55 @@ export class MigrationService {
         ) t
         WHERE rn = 1`
         );
+      } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await writeRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await writeRunner.release();
+        }
+    })
 
+      
 
-      do{
-        // Read from old database
-        journeyBasic = await queryRunner.query(
+      let hasMoreRows = true
+      while (hasMoreRows) {
+        const readRunner = this.liveDataSource.createQueryRunner();
+        await readRunner.connect();
+        try{
+        journeyBasic = await readRunner.query(
           'SELECT * FROM temp_batch ORDER BY "Index" LIMIT ? OFFSET ?',
           [limit, offset]
         );
-        if (journeyBasic === undefined || journeyBasic.length == 0) {
-          break;
-        }
-        this.isJourneyBasicArray(journeyBasic)
-        await this.migratejourneysBatch(journeyBasic, queryRunner);
-        offset += limit
-        
-        
-      } while (journeyBasic.length === limit)
+      } finally {
+        readRunner.release()
+      }
+      if (journeyBasic === undefined || journeyBasic.length == 0) {
+        hasMoreRows = false;
+        break
+      }
 
-      await queryRunner.commitTransaction();
-      this.logger.log('Migration completed successfully!');
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;
+      this.isJourneyBasicArray(journeyBasic)
+      await retryOnBusy(async () => {
+        const BatchRunner = this.liveDataSource.createQueryRunner();
+        await BatchRunner.connect();
+        await BatchRunner.startTransaction();
+        try{
+          this.migratejourneysBatch(journeyBasic, BatchRunner);
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await BatchRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await BatchRunner.release();
+        }
+      })
+
+      offset += limit
     }
   }
+        
+
 
   async migratejourneysBatch(journeysBasic: JourneyBasic[], queryRunner:any): Promise<void> {
     this.logger.log('Starting batch jounreys migration...');
@@ -544,29 +599,35 @@ export class MigrationService {
   }
 
 
-  async performPopulationLogJunctions(queryRunner : any): Promise<void>{
-
-    try {
+  async performPopulationLogJunctions(): Promise<void>{
       const batchSize = 1000;
       let offset = 0;
       let hasMore = true;
       while (hasMore) {
+        const readRunner = this.liveDataSource.createQueryRunner();
+        await readRunner.connect();
+        let result: any[] = []
+        try{
+          result = await readRunner.query(`
+            SELECT 
+              j.journey_id as journey_id,
+              jb.stop_list as stop_list
+            FROM journeys_basic jb
+            INNER JOIN journeys j ON j.service = jb.service
+            AND j.origin_code = jb.origin_id
+            AND j.destination_code = jb.destination_id
+            AND j.date_modified = jb.date_modified
+            AND j.count = jb.count
+            ORDER BY jb."Index"
+            LIMIT ? OFFSET ?
+          `, [batchSize, offset]);
+          } catch (error) {
+            this.logger.error('Failed to create Logs:', error);
+            throw error;
+          }finally {
+            readRunner.release()
+          }
 
-        await queryRunner.startTransaction();
-        const result = await queryRunner.query(`
-          SELECT 
-            j.journey_id as journey_id,
-            jb.stop_list as stop_list
-          FROM journeys_basic jb
-          INNER JOIN journeys j ON j.service = jb.service
-          AND j.origin_code = jb.origin_id
-          AND j.destination_code = jb.destination_id
-          AND j.date_modified = jb.date_modified
-          AND j.count = jb.count
-          ORDER BY jb."Index"
-          LIMIT ? OFFSET ?
-        `, [batchSize, offset]);
-        await queryRunner.commitTransaction();
         if (result.length === 0) {
           hasMore = false;
           break;
@@ -574,12 +635,20 @@ export class MigrationService {
         let values : Array<Log> = [];
         // Process each row
         for (const row of result) {
-          await queryRunner.startTransaction();
-          const stopIds = await this.findStopIds(
-            queryRunner,
-            row.stop_list
-          );
-          await queryRunner.commitTransaction();
+          const stopIDRunner = this.liveDataSource.createQueryRunner();
+          await stopIDRunner.connect();
+          let stopIds : Array<[number, number]> = []
+          try{
+            stopIds = await this.findStopIds(
+              stopIDRunner,
+              row.stop_list
+            );
+          } catch (error) {
+            this.logger.error('Failed to create Logs:', error);
+            throw error;
+          }finally {
+            stopIDRunner.release()
+          }
           const journey_id : number = row.journey_id;
 
           //concatanates each [stop_id, stop_sequence, journey_id] data point into
@@ -604,11 +673,26 @@ export class MigrationService {
         //once we create our batch list, we insert them all in a oner
 
 
-        if (this.isLogArray(values)) {      
-          await this.populateLogBatches(
-            values,
-            queryRunner
-          );
+        if (this.isLogArray(values)) {  
+          await retryOnBusy(async () => {    
+            const batchRunner = this.liveDataSource.createQueryRunner();
+            await batchRunner.connect();
+            await batchRunner.startTransaction();
+            try{
+              await this.populateLogBatches(
+                values,
+                batchRunner
+              );
+              await batchRunner.commitTransaction();
+            } catch (error) {
+              this.logger.error('Migration failed:', error);
+              await batchRunner.rollbackTransaction();
+              throw error;
+            } finally {
+              await batchRunner.release();
+            }
+          })
+
         } else{
           this.logger.log(`Values are not valid form for Log`);
         }
@@ -616,11 +700,6 @@ export class MigrationService {
         this.logger.log(`Processed ${offset} records`);
 
       }
-    } catch (error) {
-      this.logger.error('Failed to create Logs:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;
-    }
   }
 
   private async findStopIds(
@@ -686,176 +765,233 @@ export class MigrationService {
   }
 
 
-  async performMigrationArrivals(queryRunner : any): Promise<void>{
-    try {
+  async performMigrationArrivals(): Promise<void>{
       const batchSize = 100000;
       let offset = -1;
-      let totalInserted = 0;
       let hasMore = true;
       this.logger.log('Starting arrivals database migration...');
       while (hasMore) {
-        await queryRunner.startTransaction();
         this.logger.log('Migrating Arrival batch');
-        const indices  = await queryRunner.query(`
-          SELECT "index"
-          FROM arrivals_basic
-          WHERE valid = 1 AND "index" > ${offset}
-          ORDER BY "index"
-          LIMIT ${batchSize}
-        `);
+
+        const readRunner = this.liveDataSource.createQueryRunner();
+        await readRunner.connect();
+
+        let indices :any[] = []
+
+        try{
+          indices  = await readRunner.query(`
+            SELECT "index"
+            FROM arrivals_basic
+            WHERE valid = 1 AND "index" > ${offset}
+            ORDER BY "index"
+            LIMIT ${batchSize}
+          `);
+          } catch (error) {
+            this.logger.error('Failed to create Logs:', error);
+            throw error;
+          }finally {
+            readRunner.release()
+          }        
 
         if (indices.length === 0) {
-          await queryRunner.commitTransaction();
+          hasMore = false
           break;
         }
 
         const newLastIndex = indices[indices.length - 1].index;
 
-        const inserted = await queryRunner.query(
-          `
-          INSERT or IGNORE INTO arrivals (log_id, trip_code, date, time)
-          SELECT 
-            l.log_id AS log_id,
-            a.bus_id AS trip_code,
-            a.date AS date,
-            a.time AS time
-          FROM arrivals_basic a
-          INNER JOIN stops s 
-            ON a.stop_id = s.stop_code
-            AND s.valid = 1
-          INNER JOIN journeys j 
-            ON a.service = j.service 
-            AND a.origin = j.origin_code
-            AND a.destination = j.destination_code 
-            AND a.count = j.count
-            AND j.valid = 1
-          INNER JOIN logs l 
-            ON l.stop_id = s.stop_id                             
-            AND l.journey_id = j.journey_id
-          WHERE a.valid = 1
-            AND a."index" > ${offset}
-            AND a."index" <= ${newLastIndex}
-        `);
-        totalInserted += inserted.length;
-        offset = newLastIndex;
+        await retryOnBusy(async () => {
+          const batchRunner = this.liveDataSource.createQueryRunner();
+          await batchRunner.connect();
+          await batchRunner.startTransaction();     
+          try{   
+            await batchRunner.query(
+              `
+              INSERT or IGNORE INTO arrivals (log_id, trip_code, date, time)
+              SELECT 
+                l.log_id AS log_id,
+                a.bus_id AS trip_code,
+                a.date AS date,
+                a.time AS time
+              FROM arrivals_basic a
+              INNER JOIN stops s 
+                ON a.stop_id = s.stop_code
+                AND s.valid = 1
+              INNER JOIN journeys j 
+                ON a.service = j.service 
+                AND a.origin = j.origin_code
+                AND a.destination = j.destination_code 
+                AND a.count = j.count
+                AND j.valid = 1
+              INNER JOIN logs l 
+                ON l.stop_id = s.stop_id                             
+                AND l.journey_id = j.journey_id
+              WHERE a.valid = 1
+                AND a."index" > ${offset}
+                AND a."index" <= ${newLastIndex}
+            `);
 
-        this.logger.log('Arrival batch migrated');
-        await queryRunner.commitTransaction();
-      }
-      
-      this.logger.log('Arrivals Migration completed successfully!');
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;
+            this.logger.log('Arrival batch migrated');
+            await batchRunner.commitTransaction();
+          } catch (error) {
+            this.logger.error('Migration failed:', error);
+            await batchRunner.rollbackTransaction();
+            throw error;
+          } finally {
+            await batchRunner.release();
+          }
+      })
+      offset = newLastIndex
     }
   }
 
-  async performMigrationTimetables(queryRunner : any): Promise<void>{
+  async performMigrationTimetables(): Promise<void>{
 
-    this.logger.log('Merging timetables');
-    try {
-      
-      // --- 1. Create temporary tables if not exist ---
-      this.logger.log('Creating temp tables');
+    this.logger.log('Merging timetables');    
+    // --- 1. Create temporary tables if not exist ---
+    this.logger.log('Creating temp tables');
+    await retryOnBusy(async () => {
+      const tempCreateRunner = this.liveDataSource.createQueryRunner();
+      await tempCreateRunner.connect()
+      await tempCreateRunner.startTransaction();
+      try{
+        await tempCreateRunner.query(`
+          CREATE TEMP TABLE IF NOT EXISTS chunk_groups (
+            logId INTEGER,
+            batchId INTEGER,
+            cnt INTEGER,
+            hash TEXT,
+            date_valid_on DATE
+          )
+        `);
 
-      await queryRunner.startTransaction();
-      await queryRunner.query(`
-        CREATE TEMP TABLE IF NOT EXISTS chunk_groups (
-          logId INTEGER,
-          batchId INTEGER,
-          cnt INTEGER,
-          hash TEXT,
-          date_valid_on DATE
-        )
-      `);
+        await tempCreateRunner.query(`
+          CREATE TEMP TABLE IF NOT EXISTS new_basic_batch (
+            timetablesBasicId INTEGER,
+            day TEXT,
+            date_valid_on DATE,
+            logId INTEGER,
+            batchId INTEGER
+          )
+        `);
 
-      await queryRunner.query(`
-        CREATE TEMP TABLE IF NOT EXISTS new_basic_batch (
-          timetablesBasicId INTEGER,
-          day TEXT,
-          date_valid_on DATE,
-          logId INTEGER,
-          batchId INTEGER
-        )
-      `);
+        await tempCreateRunner.query(`
+          CREATE TEMP TABLE IF NOT EXISTS new_info_batch (
+            timetablesInformationId INTEGER,
+            logId INTEGER,
+            batchId INTEGER
+          )
+        `);
 
-      await queryRunner.query(`
-        CREATE TEMP TABLE IF NOT EXISTS new_info_batch (
-          timetablesInformationId INTEGER,
-          logId INTEGER,
-          batchId INTEGER
-        )
-      `);
+        await tempCreateRunner.query(`
+          CREATE TEMPORARY TABLE IF NOT EXISTS temp_groups (
+            logId INTEGER,
+            batchId INTEGER,
+            cnt INTEGER,
+            concat_values TEXT,
+            date_valid_on DATE
+          )
+        `);
 
-      await queryRunner.query(`
-        CREATE TEMPORARY TABLE IF NOT EXISTS temp_groups (
-          logId INTEGER,
-          batchId INTEGER,
-          cnt INTEGER,
-          concat_values TEXT,
-          date_valid_on DATE
-        )
-      `);
+        await tempCreateRunner.query(`
+          CREATE INDEX IF NOT EXISTS idx_temp_groups_order ON temp_groups (logId, batchId);
+        `);
 
-      await queryRunner.query(`
-        CREATE INDEX IF NOT EXISTS idx_temp_groups_order ON temp_groups (logId, batchId);
-      `);
+        await tempCreateRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await tempCreateRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await tempCreateRunner.release();
+        }  
+    })    
 
-      this.logger.log('inserting into temp_groups');
-      await queryRunner.query(`
-        INSERT INTO temp_groups (logId, batchId, cnt, concat_values, date_valid_on)
-        SELECT 
-          l.log_id AS logId,
-          tb.name AS batchId, 
-          COUNT(*) AS cnt, 
-          group_concat(tb.time ORDER BY tb.time) AS concat_values,
-          tb.created_at AS date_valid_on
-        FROM timetables_basic tb
-        INNER JOIN stops s ON tb.stop_id = s.stop_code
-        INNER JOIN journeys j 
-          ON tb.service = j.service 
-          AND tb.origin_id = j.origin_code
-          AND tb.destination_id = j.destination_code 
-          AND tb.count = j.count
-        INNER JOIN logs l 
-          ON l.stop_id = s.stop_id                             
-          AND l.journey_id = j.journey_id
-        WHERE tb.is_active = 1
-        GROUP BY l.log_id, tb.name;
-      `);
-      await queryRunner.commitTransaction();
+    this.logger.log('inserting into temp_groups');
 
-      await queryRunner.startTransaction();
-      this.logger.log('precalculating joins');
-      await queryRunner.query(`
-        CREATE TEMP TABLE IF NOT EXISTS precomputed_timetables AS
-        SELECT 
+    await retryOnBusy(async () => {
+      const tempgroupsRunner = this.liveDataSource.createQueryRunner();
+      await tempgroupsRunner.connect()
+      await tempgroupsRunner.startTransaction();   
+      try{   
+        await tempgroupsRunner.query(`
+          INSERT INTO temp_groups (logId, batchId, cnt, concat_values, date_valid_on)
+          SELECT 
             l.log_id AS logId,
-            tb.name AS batchId,   -- adjust column name if different
-            tb.time AS time
-        FROM timetables_basic tb
-        INNER JOIN stops s ON tb.stop_id = s.stop_code
-        INNER JOIN journeys j 
+            tb.name AS batchId, 
+            COUNT(*) AS cnt, 
+            group_concat(tb.time ORDER BY tb.time) AS concat_values,
+            tb.created_at AS date_valid_on
+          FROM timetables_basic tb
+          INNER JOIN stops s ON tb.stop_id = s.stop_code
+          INNER JOIN journeys j 
             ON tb.service = j.service 
             AND tb.origin_id = j.origin_code
             AND tb.destination_id = j.destination_code 
             AND tb.count = j.count
-        INNER JOIN logs l 
+          INNER JOIN logs l 
             ON l.stop_id = s.stop_id                             
             AND l.journey_id = j.journey_id
-        WHERE tb.is_active = 1;
-      `)
+          WHERE tb.is_active = 1
+          GROUP BY l.log_id, tb.name;
+        `);
+      await tempgroupsRunner.commitTransaction();
+    } catch (error) {
+      this.logger.error('Migration failed:', error);
+      await tempgroupsRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await tempgroupsRunner.release();
+    }  
+  })
 
-      await queryRunner.query(`
-        CREATE INDEX IF NOT EXISTS idx_precomputed_log_batch ON precomputed_timetables (logId, batchId);
-      `)
+  this.logger.log('precalculating joins');
+    await retryOnBusy(async () => {
+      const precomputeRunner = this.liveDataSource.createQueryRunner();
+      await precomputeRunner.connect()
+      await precomputeRunner.startTransaction();        
+      try{
+        await precomputeRunner.query(`
+          CREATE TEMP TABLE IF NOT EXISTS precomputed_timetables AS
+          SELECT 
+              l.log_id AS logId,
+              tb.name AS batchId,   -- adjust column name if different
+              tb.time AS time
+          FROM timetables_basic tb
+          INNER JOIN stops s ON tb.stop_id = s.stop_code
+          INNER JOIN journeys j 
+              ON tb.service = j.service 
+              AND tb.origin_id = j.origin_code
+              AND tb.destination_id = j.destination_code 
+              AND tb.count = j.count
+          INNER JOIN logs l 
+              ON l.stop_id = s.stop_id                             
+              AND l.journey_id = j.journey_id
+          WHERE tb.is_active = 1;
+        `)
 
-      await queryRunner.commitTransaction();
+        await precomputeRunner.query(`
+          CREATE INDEX IF NOT EXISTS idx_precomputed_log_batch ON precomputed_timetables (logId, batchId);
+        `)
 
-      await queryRunner.startTransaction();
+      await precomputeRunner.commitTransaction();
+    } catch (error) {
+      this.logger.error('Migration failed:', error);
+      await precomputeRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await precomputeRunner.release();
+    }       
+  }) 
 
-      await queryRunner.query(`
+    
+  this.logger.log('computing hash keys');
+  await retryOnBusy(async () => {
+    const keyRunner = this.liveDataSource.createQueryRunner();
+    await keyRunner.connect()
+    await keyRunner.startTransaction();      
+    try{ 
+      await keyRunner.query(`
         CREATE TEMP TABLE IF NOT EXISTS most_recent_keys AS
         SELECT t.log_id, t.daily_times_count, t.values_hash
         FROM timetables_information t
@@ -868,49 +1004,90 @@ export class MigrationService {
             AND t.date_valid_on = m.max_date;
       `)      
 
-      await queryRunner.query(`
+      await keyRunner.query(`
         CREATE INDEX idx_most_recent_keys ON most_recent_keys(log_id, daily_times_count, values_hash);
       `) 
 
+      keyRunner.commitTransaction()
+    } catch (error) {
+      this.logger.error('Migration failed:', error);
+      await keyRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await keyRunner.release();
+    }   
+  })
 
-      const CHUNK_SIZE = 200; // groups per chunk
-      let offset = 0;
-      await queryRunner.commitTransaction();
-      this.logger.log('Starting batch hashing and insertion');
-      while (true) {
-        await queryRunner.startTransaction();
-        // --- 2a. Fetch next chunk from temp_groups ---
-        this.logger.log('Selecting batch from groups');
-        const groups = await queryRunner.query(
+
+    const CHUNK_SIZE = 200; // groups per chunk
+    let offset = 0;
+    this.logger.log('Starting batch hashing and insertion');
+    while (true) {
+
+      // --- 2a. Fetch next chunk from temp_groups ---
+      this.logger.log('Selecting batch from groups');
+
+      let groups :any[] = []
+      const readRunner = this.liveDataSource.createQueryRunner();
+      await readRunner.connect() 
+      try{
+        groups = await readRunner.query(
           `SELECT logId, batchId, cnt, concat_values, date_valid_on FROM temp_groups LIMIT ? OFFSET ?`,
           [CHUNK_SIZE, offset]
         );
-        if (groups.length === 0) break;
-        offset += groups.length;
+      } catch (error) {
+        this.logger.error('Migration failed:', error);
+        throw error;
+      } finally {
+        await readRunner.release();
+      }
 
-        this.logger.log('Hashing batch');
-        // --- 2b. Compute hash for each group ---
-        const groupsWithHash = groups.map(g => ({
-          logId: g.logId,
-          batchId: g.batchId,
-          cnt: g.cnt,
-          hash: createHash('sha256').update(g.concat_values).digest('hex'),
-          date_valid_on: g.date_valid_on
-        }));
+      if (groups.length === 0) break;
+      offset += groups.length;
 
-        // --- 2c. Clear and fill chunk_groups ---
-        await queryRunner.query(`DELETE FROM chunk_groups`);
+      this.logger.log('Hashing batch');
+      // --- 2b. Compute hash for each group ---
+      const groupsWithHash = groups.map(g => ({
+        logId: g.logId,
+        batchId: g.batchId,
+        cnt: g.cnt,
+        hash: createHash('sha256').update(g.concat_values).digest('hex'),
+        date_valid_on: g.date_valid_on
+      }));
 
-        const insertChunkSql = `
-          INSERT INTO chunk_groups (logId, batchId, cnt, hash, date_valid_on) VALUES
-          ${groupsWithHash.map(() => '(?, ?, ?, ?, ?)').join(',')}
-        `;
-        const chunkParams = groupsWithHash.flatMap(g => [g.logId, g.batchId, g.cnt, g.hash, g.date_valid_on]);
-        await queryRunner.query(insertChunkSql, chunkParams);
+      // --- 2c. Clear and fill chunk_groups ---
 
-        // --- 2d. Identify new groups ---
-        this.logger.log('computing newly created timetables');
-        const newGroupsRows = await queryRunner.query(`
+      await retryOnBusy(async () => {
+        const chunkGroupsRunner = this.liveDataSource.createQueryRunner();
+        await chunkGroupsRunner.connect() 
+        await chunkGroupsRunner.startTransaction();
+        try{
+          await chunkGroupsRunner.query(`DELETE FROM chunk_groups`);
+
+          const insertChunkSql = `
+            INSERT INTO chunk_groups (logId, batchId, cnt, hash, date_valid_on) VALUES
+            ${groupsWithHash.map(() => '(?, ?, ?, ?, ?)').join(',')}
+          `;
+          const chunkParams = groupsWithHash.flatMap(g => [g.logId, g.batchId, g.cnt, g.hash, g.date_valid_on]);
+          await chunkGroupsRunner.query(insertChunkSql, chunkParams);
+          await chunkGroupsRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await chunkGroupsRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await chunkGroupsRunner.release();
+        }
+      })
+
+      // --- 2d. Identify new groups ---
+      this.logger.log('computing newly created timetables');
+      let newGroupsRows :any[] = []
+
+      const readRunner2 = this.liveDataSource.createQueryRunner();
+      await readRunner2.connect();
+      try{         
+        newGroupsRows = await readRunner2.query(`
           SELECT cg.logId, cg.batchId, cg.cnt, cg.hash, cg.date_valid_on
           FROM chunk_groups cg
           WHERE NOT EXISTS (
@@ -921,73 +1098,131 @@ export class MigrationService {
                 AND mrk.values_hash = cg.hash
           );
         `);
-
-        if (newGroupsRows.length === 0) {
-          this.logger.log('no new groups detected, continuing');
-          continue; // no new groups in this chunk
-        }
-
-        // --- 2e. Insert new groups into timetables_information and get IDs ---
-        this.logger.log('Inseting timetables_information batch');
-
-        const insertInfoSql = `
-          INSERT OR IGNORE INTO timetables_information (log_id, daily_times_count, values_hash, date_valid_on, day)
-          VALUES ${newGroupsRows.map(() => '(?, ?, ?, ?, ?)').join(',')}
-          RETURNING timetable_information_id, log_id, daily_times_count, values_hash
-        `;
-        const infoParams = newGroupsRows.flatMap(g => [g.logId, g.cnt, g.hash, g.date_valid_on, g.batchId]);
-        const insertedInfos = await queryRunner.query(insertInfoSql, infoParams);
-
-        // --- 2f. Map (logId, cnt, hash) -> new ID ---
-        const infoMap = new Map(
-          insertedInfos.map(row => [`${row.log_id}-${row.daily_times_count}-${row.values_hash}`, row.timetable_information_id])
-        );
-
-        // --- 2g. Prepare mapping for new_info_batch ---
-        const batchMapping = newGroupsRows.map(g => {
-          const key = `${g.logId}-${g.cnt}-${g.hash}`;
-          const infoId = infoMap.get(key);
-          if (!infoId) throw new Error('Inconsistency: inserted info not found in map');
-          return { timetablesInformationId: infoId, logId: g.logId, batchId: g.batchId };
-        });
-
-        // Clear and fill new_info_batch
-        await queryRunner.query(`DELETE FROM new_info_batch`);
-
-        const insertMappingSql = `
-          INSERT OR IGNORE INTO new_info_batch (timetablesInformationId, logId, batchId) VALUES
-          ${batchMapping.map(() => '(?, ?, ?)').join(',')}
-        `;
-        const mappingParams = batchMapping.flatMap(m => [m.timetablesInformationId, m.logId, m.batchId]);
-        await queryRunner.query(insertMappingSql, mappingParams);
-
-        // --- 2h. Bulk insert timetables ---
-        this.logger.log('Inseting timetables batch');
-        await queryRunner.query(`
-          INSERT OR IGNORE INTO timetables (timetable_information_id, time)
-          SELECT 
-            nib.timetablesInformationId, 
-            pt.time
-          FROM precomputed_timetables pt
-          INNER JOIN new_info_batch nib 
-            ON pt.logId = nib.logId AND pt.batchId = nib.batchId
-        `);
-        // Optional: commit transaction per chunk (if you started one)
-        await queryRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Migration failed:', error);
+        throw error;
+      } finally {
+        await readRunner2.release();
       }
-    }  catch (error) {
-      this.logger.error('Failed to merge timetables:', error);
-      await queryRunner.rollbackTransaction();
+
+      if (newGroupsRows.length === 0) {
+        this.logger.log('no new groups detected, continuing');
+        continue; // no new groups in this chunk
+      }
+
+      // --- 2e. Insert new groups into timetables_information and get IDs ---
+      this.logger.log('Inseting timetables_information batch');
+
+      const insertInfoSql = `
+        INSERT OR IGNORE INTO timetables_information (log_id, daily_times_count, values_hash, date_valid_on, day)
+        VALUES ${newGroupsRows.map(() => '(?, ?, ?, ?, ?)').join(',')}
+        RETURNING timetable_information_id, log_id, daily_times_count, values_hash
+      `;
+      const infoParams = newGroupsRows.flatMap(g => [g.logId, g.cnt, g.hash, g.date_valid_on, g.batchId]);
+
+      const insertedInfos = await retryOnBusy(async () => {
+        const insertedInfosRunner = this.liveDataSource.createQueryRunner();
+        await insertedInfosRunner.connect() 
+        await insertedInfosRunner.startTransaction();
+        let insertedInfos : any[] = []
+        try{
+          insertedInfos = await insertedInfosRunner.query(insertInfoSql, infoParams);
+          await insertedInfosRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await insertedInfosRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await insertedInfosRunner.release();
+        }      
+        return insertedInfos      
+      })
+
+      // --- 2f. Map (logId, cnt, hash) -> new ID ---
+      const infoMap = new Map(
+        insertedInfos.map(row => [`${row.log_id}-${row.daily_times_count}-${row.values_hash}`, row.timetable_information_id])
+      );
+
+      // --- 2g. Prepare mapping for new_info_batch ---
+      const batchMapping = newGroupsRows.map(g => {
+        const key = `${g.logId}-${g.cnt}-${g.hash}`;
+        const infoId = infoMap.get(key);
+        if (!infoId) throw new Error('Inconsistency: inserted info not found in map');
+        return { timetablesInformationId: infoId, logId: g.logId, batchId: g.batchId };
+      });
+
+      // Clear and fill new_info_batch
+      const insertMappingSql = `
+        INSERT OR IGNORE INTO new_info_batch (timetablesInformationId, logId, batchId) VALUES
+        ${batchMapping.map(() => '(?, ?, ?)').join(',')}
+      `;
+      const mappingParams = batchMapping.flatMap(m => [m.timetablesInformationId, m.logId, m.batchId]);
+
+      await retryOnBusy(async () => {
+        const newInfoBatchRunner = this.liveDataSource.createQueryRunner();
+        await newInfoBatchRunner.connect() 
+        await newInfoBatchRunner.startTransaction();
+        try{
+          await newInfoBatchRunner.query(`DELETE FROM new_info_batch`);
+          await newInfoBatchRunner.query(insertMappingSql, mappingParams);
+          await newInfoBatchRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await newInfoBatchRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await newInfoBatchRunner.release();
+        }
+      })                
+
+      // --- 2h. Bulk insert timetables ---
+      this.logger.log('Inseting timetables batch');
+
+      await retryOnBusy(async () => {
+        const timetableInformationRunner = this.liveDataSource.createQueryRunner();
+        await timetableInformationRunner.connect() 
+        await timetableInformationRunner.startTransaction();          
+        try{
+          await timetableInformationRunner.query(`
+            INSERT OR IGNORE INTO timetables (timetable_information_id, time)
+            SELECT 
+              nib.timetablesInformationId, 
+              pt.time
+            FROM precomputed_timetables pt
+            INNER JOIN new_info_batch nib 
+              ON pt.logId = nib.logId AND pt.batchId = nib.batchId
+          `);
+          await timetableInformationRunner.commitTransaction();
+        } catch (error) {
+          this.logger.error('Migration failed:', error);
+          await timetableInformationRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await timetableInformationRunner.release();
+        }            
+      })
+
+    }
+  await retryOnBusy(async () => {
+    const cleanupRunner = this.liveDataSource.createQueryRunner();
+    await cleanupRunner.connect() 
+    await cleanupRunner.startTransaction();  
+
+    try{
+      await cleanupRunner.query(`DROP TABLE chunk_groups`);
+      await cleanupRunner.query(`DROP TABLE precomputed_timetables`);
+      await cleanupRunner.query(`DROP TABLE new_info_batch`);
+      await cleanupRunner.query(`DROP TABLE temp_groups`);
+      await cleanupRunner.query(`DROP TABLE most_recent_keys`);
+      await cleanupRunner.commitTransaction();
+    } catch (error) {
+      this.logger.error('Migration failed:', error);
+      await cleanupRunner.rollbackTransaction();
       throw error;
     } finally {
-      await queryRunner.startTransaction();
-      await queryRunner.query(`DROP TABLE chunk_groups`);
-      await queryRunner.query(`DROP TABLE precomputed_timetables`);
-      await queryRunner.query(`DROP TABLE new_info_batch`);
-      await queryRunner.query(`DROP TABLE temp_groups`);
-      await queryRunner.query(`DROP TABLE most_recent_keys`);
-      await queryRunner.commitTransaction();
-    }
+      await cleanupRunner.release();
+    }  
+  })
   }
 
   private getDate(unixTime : number): number{

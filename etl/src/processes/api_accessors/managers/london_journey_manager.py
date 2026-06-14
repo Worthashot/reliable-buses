@@ -46,21 +46,20 @@ class LondonJourneyManager:
         self.bus_project_api_key = bus_project_api_key
         self.tfl_api_key = tfl_api_key
 
-        self.unuploaded_cache_db_location = unuploaded_cache_db_location
-        self.inactive_cache_db_location = inactive_cache_db_location
-        self._init_db()
+
+        self._init_db(unuploaded_cache_db_location, inactive_cache_db_location)
         self.api_manager = APIManager()
         # self.test_df_1 = pd.DataFrame()
         # self.test_df_2 = pd.DataFrame()
         # self.test_df_3 = pd.DataFrame()
 
 
-    def _init_db(self):
+    def _init_db(self, unuploaded_cache_db_location, inactive_cache_db_location):
         database_name = "journeysLondonBasicUnuploadedCache.db"
-        file_path = Path.cwd() / self.unuploaded_cache_db_location
+        file_path = Path.cwd() / unuploaded_cache_db_location
         Path(file_path).mkdir(parents=True, exist_ok=True)
-        file_path = file_path / database_name
-        with sqlite3.connect(file_path, timeout=10) as conn:
+        self.unuploaded_cache_db_location = file_path / database_name
+        with sqlite3.connect(self.unuploaded_cache_db_location, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS journeysLondonBasicUnuploadedCache (
                     id INTEGER PRIMARY KEY,
@@ -72,10 +71,10 @@ class LondonJourneyManager:
 
 
         database_name = "journeysLondonBasicInactiveCache.db"
-        file_path = Path.cwd() / self.inactive_cache_db_location
+        file_path = Path.cwd() / inactive_cache_db_location
         Path(file_path).mkdir(parents=True, exist_ok=True)
-        file_path = file_path / database_name
-        with sqlite3.connect(file_path, timeout=10) as conn:
+        self.inactive_cache_db_location = file_path / database_name
+        with sqlite3.connect(self.inactive_cache_db_location, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS journeysLondonBasicInactiveCache (
                     id INTEGER PRIMARY KEY,

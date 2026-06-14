@@ -41,16 +41,15 @@ class LondonStopManager:
         self.last_lookup = datetime.fromtimestamp(0, ZoneInfo("Europe/London"))
         self.bus_project_api_key = bus_project_api_key
         self.tfl_api_key = tfl_api_key
-        self.cache_db_location = cache_db_location
-        self._init_db()
+        self._init_db(cache_db_location)
         self.api_manager = APIManager()
 
-    def _init_db(self):
+    def _init_db(self, cache_db_location):
         database_name = "stopsLondonBasicCache.db"
-        file_path = Path.cwd() / self.cache_db_location
+        file_path = Path.cwd() / cache_db_location
         Path(file_path).mkdir(parents=True, exist_ok=True)
-        file_path = file_path / database_name
-        with sqlite3.connect(file_path, timeout=10) as conn:
+        self.cache_db_location = file_path / database_name
+        with sqlite3.connect(self.cache_db_location, timeout=10) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS stopsLondonBasicCache (
                     id INTEGER PRIMARY KEY,

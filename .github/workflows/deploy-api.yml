@@ -16,7 +16,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd  /home/ubuntu/reliablebuses/api
+            git reset --hard HEAD
+            git clean -fd
             git pull origin master
             npm install
             npm run build
+            npm run migration:run
             pm2 reload ecosystem.config.js

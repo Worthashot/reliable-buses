@@ -17,7 +17,6 @@ jobs:
           script: |
             cd  /home/ubuntu/reliablebuses/api
             git reset --hard HEAD
-            git clean -fd
             git pull origin master
             npm install
             npm run build

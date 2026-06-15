@@ -130,6 +130,10 @@ export class MigrationService {
     return this.is_migrating
   }
 
+  public testSetMigratingStatus(status : string[]): void{
+    this.is_migrating = status
+  }
+
   //TODO
   //double check all patters to ensure runners are always closed
   async createStopsTable(): Promise<void>{
@@ -540,6 +544,7 @@ export class MigrationService {
           await writeRunner.release();
         }
       });
+      offset += limit
     }
   }
 
@@ -1213,7 +1218,7 @@ export class MigrationService {
         }      
         return insertedInfos      
       })
-      
+
       if (insertedInfos.length === 0){
         continue
       }

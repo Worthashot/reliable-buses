@@ -1,5 +1,5 @@
 // migration.controller.ts
-import { Controller, Post, Get, Logger } from '@nestjs/common';
+import { Controller, Post, Get, Logger, Body } from '@nestjs/common';
 import { MigrationService } from './migration.service';
 import { Res } from '@nestjs/common';
 import { Public, Private, Admin } from '../auth/decorators/permission.decorator'
@@ -42,4 +42,11 @@ export class MigrationController {
   public testCounting() {
     return  this.migrationService.countLogTimetables()
   }
+
+  @Admin()
+  @Post('test_set_migrating_status')
+  public testSetMigratingStatus(@Body() status: string[]) {
+    return  this.migrationService.testSetMigratingStatus(status)
+  }
+
 }

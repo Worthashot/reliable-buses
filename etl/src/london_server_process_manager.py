@@ -444,7 +444,7 @@ class LondonServerProcessManager:
                     migrating_status = api.check_migrating(
                         self.bus_project_url, self.bus_project_key, self.logger
                     )
-                    if migrating_status == "migrating":
+                    if migrating_status == "running":
                         has_just_finished_migrating = True
                     if self.shutdown_event.is_set():
                         break

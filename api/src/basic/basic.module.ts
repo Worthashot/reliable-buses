@@ -9,15 +9,15 @@
 import { BasicController } from './basic.controller';
 import { BasicService } from './basic.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Module, forwardRef  } from '@nestjs/common';
+import { Module  } from '@nestjs/common';
 import { JourneyBasicEntity } from './entities/journey.basic.entity';
 import { JourneyEntity } from 'src/journey/entities/journey.entity';
 import { StopBasicEntity } from './entities/stop.basic.entity';
 import { ArrivalBasicEntity } from './entities/arrival.basic.entity';
 import { TimetableBasicEntity } from './entities/timetable.basic.entity';
-import { MigrationModule } from 'src/migration/migration.module';
+import { TaskStatusModule } from 'src/taskstatus/taststatus.module';
 @Module({
-imports: [forwardRef(() => MigrationModule),
+imports: [TaskStatusModule,
     TypeOrmModule.forFeature([JourneyEntity,
                             JourneyBasicEntity, StopBasicEntity, ArrivalBasicEntity, TimetableBasicEntity], 
                             'live'), // Register entity for this module

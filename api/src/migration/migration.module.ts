@@ -11,9 +11,9 @@ import { TimetableEntity } from 'src/timetable/entities/timetable.entity';
 import { ArrivalBasicEntity} from '../basic/entities/arrival.basic.entity';
 import { JourneyBasicEntity } from '../basic/entities/journey.basic.entity';
 import { StopBasicEntity } from '../basic/entities/stop.basic.entity';
-
+import { TaskStatusModule } from 'src/taskstatus/taststatus.module';
 @Module({
-    imports: [
+    imports: [TaskStatusModule,
         TypeOrmModule.forFeature([ArrivalBasicEntity, JourneyBasicEntity, StopBasicEntity,
                                   LogEntity, ArrivalEntity, StopEntity, JourneyEntity, TimetableInformationEntity, TimetableEntity],
                                   'live'),
@@ -21,6 +21,5 @@ import { StopBasicEntity } from '../basic/entities/stop.basic.entity';
 
     controllers: [MigrationController],
     providers: [MigrationService],
-    exports: [MigrationService],
 })
 export class MigrationModule {}

@@ -45,7 +45,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 status = api.check_validating(bus_project_url, bus_project_key, logger)
                 if process_shutdown_event.is_set():
                     break
-                if status == "validating":
+                if status == "running":
                     logger.info("API is validating. sleeping for 5 seconds.")
                     time.sleep(5)
             if process_shutdown_event.is_set():
@@ -128,7 +128,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 status = api.check_migrating(bus_project_url, bus_project_key, logger)
                 if process_shutdown_event.is_set():
                     break
-                if status == "migrating":
+                if status == "running":
                     logger.info("API is merging. sleeping for 5 seconds.")
                     time.sleep(5)
             if process_shutdown_event.is_set():
@@ -189,7 +189,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 status = api.check_validating(bus_project_url, bus_project_key, logger)
                 if process_shutdown_event.is_set():
                     break
-                if status == "validating":
+                if status == "running":
                     logger.info("API is validating. sleeping for 5 seconds.")
                     time.sleep(5)
             if process_shutdown_event.is_set():
@@ -274,7 +274,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 status = api.check_deleting(bus_project_url, bus_project_key, logger)
                 if process_shutdown_event.is_set():
                     break
-                if status == "deleting":
+                if status == "running":
                     logger.info("API is deleting. sleeping for 5 seconds.")
                     time.sleep(5)
             if process_shutdown_event.is_set():

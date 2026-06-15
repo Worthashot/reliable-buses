@@ -16,18 +16,12 @@ import { TimetableEntity } from 'src/timetable/entities/timetable.entity';
 import { TimetableInformationEntity } from 'src/timetable/entities/timetable_information_entity';
 import { Log} from 'src/log/interfaces/log.interface';
 import { createHash } from 'crypto';
-import { retryOnBusy
-  
- } from 'src/common/retry.on.busy';
+import { retryOnBusy } from 'src/common/retry.on.busy';
+import { TaskStatusService } from 'src/taskstatus/taskstatus.service';
 @Injectable()
 export class MigrationService {
   private readonly logger = new Logger(MigrationService.name);
 
-  //stores the status for migrating
-  //0 -- success
-  //1 -- currently migrating
-  //2 -- failed
-  private is_migrating: string[] = ["0"]
   constructor(
     
     @InjectRepository(ArrivalBasicEntity, 'live')
@@ -69,7 +63,6 @@ export class MigrationService {
   }
 
   async dailyMigration(): Promise<void>{
-    this.is_migrating = ["1"]
 
     try {
 
@@ -98,10 +91,8 @@ export class MigrationService {
       await this.countLogTimetables();
     
       this.logger.log('✅ Migration completed successfully!');
-      this.is_migrating = ["0"]
     } catch (error) {
       this.logger.error('❌ Migration failed:', error);
-      this.is_migrating = ["2"]
       throw error;
     }
   }
@@ -124,14 +115,6 @@ export class MigrationService {
     const sorted = [...values].sort();                 // 1. sort
     const concatenated = sorted.join('|');             // 2. join with delimiter
     return createHash('sha256').update(concatenated).digest('hex'); // 3. hash
-  }
-
-  public check_migrating(): string[]{
-    return this.is_migrating
-  }
-
-  public testSetMigratingStatus(status : string[]): void{
-    this.is_migrating = status
   }
 
   //TODO

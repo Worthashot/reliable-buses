@@ -38,37 +38,6 @@ export class BasicService {
 
   ) {}  
   
-  public set_deleting(): void{
-    this.is_deleting = ["1"]
-  }
-
-  public failed_deleting(): void{
-    this.is_deleting = ["2"]
-  }
-
-  public succeeded_deleting(): void{
-    this.is_deleting = ["0"]
-  }
-
-  public check_deleting(): string[]{
-    return this.is_deleting
-  }
-
-  public set_validating(): void{
-    this.is_validating = ["1"]
-  }
-
-  public failed_validating(): void{
-    this.is_validating = ["2"]
-  }
-
-  public succeeded_validating(): void{
-    this.is_validating = ["0"]
-  }
-
-  public check_validating(): string[]{
-    return this.is_validating
-  }
 
   async setBasicJourneysInactive(): Promise<void>{
     await this.createJourneysBasicTable()
@@ -335,7 +304,7 @@ export class BasicService {
       .insert()
       .into(JourneyBasicEntity)
       .values(elements)
-      .orIgnore()  // This is key for SQLite
+      .orIgnore()  
       .execute();
   }
 

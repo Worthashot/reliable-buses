@@ -8,13 +8,12 @@ import { ArrivalBasicModifyElementDto } from './dto/arrival_basic_modify_element
 import { TimetableBasicAddElementDto } from './dto/timetable.basic.add.element.dto';
 import type { Response } from 'express';
 import { Res } from '@nestjs/common';
-import { MigrationService } from 'src/migration/migration.service';
 import { ServiceUnavailableException } from '@nestjs/common';
-
+import { TaskStatusService } from 'src/taskstatus/taskstatus.service';
 @Controller('basic')
 export class BasicController {
     constructor (private basicService: BasicService,
-      private readonly migrationService: MigrationService,
+                private taskStatus: TaskStatusService,
     ) {}
     private readonly logger = new Logger(BasicController.name);
 
@@ -42,7 +41,7 @@ export class BasicController {
   @Admin()
   @Post('new_journeys')
   async addNewJourneysBasic(@Body() elements: JourneyBasicAddElementDto[]) {
-    if (this.migrationService.check_migrating()[0] === "1") {
+    if (this.taskStatus.isTaskRunning("migrating")) {
         throw new ServiceUnavailableException({
           statusCode: 503,
           error: 'Service Unavailable',
@@ -63,7 +62,7 @@ export class BasicController {
   @Admin()
   @Post('new_stops')
   async addNewStopsBasic(@Body() elements: StopBasicAddElementDto[]) {
-    if (this.migrationService.check_migrating()[0] === "1") {
+    if (this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -82,7 +81,9 @@ export class BasicController {
   @Admin()
   @Post('new_arrivals')
   async addNewArrivalsBasic(@Body() elements: ArrivalBasicAddElementDto[]) {
-    if (this.migrationService.check_migrating()[0] === "1") {
+
+    if (this.taskStatus.isTaskRunning("migrating")) {
+      this.logger.log('database merging, blocking request');
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -101,7 +102,7 @@ export class BasicController {
   @Admin()
   @Post('new_timetables')
   async addNewTimetablesBasic(@Body() elements: TimetableBasicAddElementDto[]) {     
-    if (this.migrationService.check_migrating()[0] === "1") {
+    if (this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -169,7 +170,7 @@ export class BasicController {
   @Admin()
   @Delete('delete_matching_invalid_arrivals')
   async deleteMatchingArrivalsBasic(@Body() elements: ArrivalBasicModifyElementDto[]) {
-    if (this.migrationService.check_migrating()[0] === "1") {
+    if (this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -202,7 +203,7 @@ export class BasicController {
   @Admin()
   @Delete('delete_old')
   async deleteOldBasicEntities(@Res() res: Response) {
-    if (this.migrationService.check_migrating()[0] === "1") {
+    if ((this.taskStatus.isTaskRunning("migrating")) || (this.taskStatus.isTaskRunning("deleting"))) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -210,7 +211,7 @@ export class BasicController {
         retryAfter: 3600,
       });  
     }
-    this.basicService.set_deleting()
+    this.taskStatus.startTask("deleting")
     res.status(202).json({ message: 'Task accepted' });
 
     setImmediate(async () => {
@@ -226,43 +227,14 @@ export class BasicController {
         this.logger.log('old ArrivalBasic deleted');
         this.logger.log('all basic entries deleted successfully');
       } catch (error) {
-        this.basicService.failed_deleting()
         this.logger.error('Deletion failed', error);
+        this.taskStatus.failTask("deleting")
+        throw error
       }
     });
-    this.basicService.succeeded_deleting()
+    this.taskStatus.endTask("deleting")
     return;
   }  
-
-  @Admin()
-  @Get('is_deleting')
-  public checkDeletion() {
-    return  this.basicService.check_deleting()
-  }
-
-  @Admin()
-  @Get('is_validating')
-  public check_validating() {
-    return  this.basicService.check_deleting()
-  }
-
-  @Admin()
-  @Post('set_validating')
-  public setValidating() {
-    return  this.basicService.set_validating()
-  }
-
-  @Admin()
-  @Post('succeeded_validating')
-  public succeedValidating() {
-    return  this.basicService.succeeded_validating()
-  }
-
-  @Admin()
-  @Post('failed_validating')
-  public failedValidating() {
-    return  this.basicService.failed_validating()
-  }
 
   @Admin()
   @Delete('scrub_basic')

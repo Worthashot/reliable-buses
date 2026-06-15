@@ -577,11 +577,13 @@ class LondonServerProcessManager:
                 continue
             if self.shutdown_event.is_set():
                 break
-            url = self.bus_project_url + "/basic/set_validating"
-            headers = {"x-api-key": self.bus_project_key}
+            url = self.bus_project_url + "/taskstatus/start_task"
+            headers = {"x-api-key": self.bus_project_key,
+                       "Content-Type": "text/plain"}
+            data = "validating"
             try:
                 self.logger.info("setting API to validating")
-                _r, _attempts = self.api_manager.post_api(url, headers, self.logger)
+                _r, _attempts = self.api_manager.post_api(url, headers, self.logger, data = data)
             except Exception as e:
                 self.logger.exception("High Error in validate_busses()\n" + repr(e))
                 subject = "validate_busses High Error :" + repr(e)
@@ -604,10 +606,12 @@ class LondonServerProcessManager:
                 continue
             if self.shutdown_event.is_set():
                 self.logger.info("setting API to successful Validating")
-                url = self.bus_project_url + "/basic/succeeded_validating"
-                headers = {"x-api-key": self.bus_project_key}
+                url = self.bus_project_url + "/taskstatus/end_task"
+                headers = {"x-api-key": self.bus_project_key,
+                        "Content-Type": "text/plain"}
+                data = "validating"
                 try:
-                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger)
+                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger, data=data)
                 except Exception as e:
                     self.logger.exception(
                         "Critical Error in validate_busses()\n"
@@ -644,10 +648,12 @@ class LondonServerProcessManager:
                 self.logger.exception(
                     "Critical Error in arrival_manager.run_valdation()\n" + repr(e)
                 )
-                url = self.bus_project_url + "/basic/failed_validating"
-                headers = {"x-api-key": self.bus_project_key}
+                url = self.bus_project_url + "/taskstatus/fail_task"
+                headers = {"x-api-key": self.bus_project_key,
+                        "Content-Type": "text/plain"}
+                data = "validating"
                 try:
-                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger)
+                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger, data=data)
                 except Exception as e2:
                     self.logger.exception(
                         "Critical Error in arrival_manager.run_valdation()\n"
@@ -692,10 +698,12 @@ class LondonServerProcessManager:
                 self.handle_critical_error()
             finally:
                 self.logger.info("setting API to finish Validating")
-                url = self.bus_project_url + "/basic/succeeded_validating"
-                headers = {"x-api-key": self.bus_project_key}
+                url = self.bus_project_url + "/taskstatus/end_task"
+                headers = {"x-api-key": self.bus_project_key,
+                        "Content-Type": "text/plain"}
+                data = "validating"
                 try:
-                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger)
+                    _r, _attempts = self.api_manager.post_api(url, headers, self.logger, data = data)
                 except Exception as e:
                     self.logger.exception(
                         "Critical Error in validate_busses()\n"

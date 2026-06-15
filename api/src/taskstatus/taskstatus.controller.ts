@@ -19,4 +19,22 @@ export class TaskStatusController {
       return "succeeded"
      }
   }
+
+  @Admin()
+  @Post('start_task')
+  async startTask(@Body() task_name: string){
+    this.taskStatusService.startTask(task_name)
+  }
+
+  @Admin()
+  @Post('end_task')
+  async endTask(@Body() task_name: string){
+    this.taskStatusService.endTask(task_name)
+  }
+
+  @Admin()
+  @Post('fail_task')
+  async failTask(@Body() task_name: string){
+    this.taskStatusService.failTask(task_name)
+  }
 }

@@ -3,7 +3,7 @@ import { TaskStatusService } from './taskstatus.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([])],
+  imports: [TypeOrmModule],
   providers: [TaskStatusService],
   exports: [TaskStatusService],
 })

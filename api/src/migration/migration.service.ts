@@ -94,6 +94,8 @@ export class MigrationService {
       await this.performMigrationArrivals();
 
       await this.performMigrationTimetables();
+
+      await this.countLogTimetables();
     
       this.logger.log('✅ Migration completed successfully!');
       this.is_migrating = ["0"]
@@ -102,7 +104,6 @@ export class MigrationService {
       this.is_migrating = ["2"]
       throw error;
     }
-      await this.countLogTimetables();
   }
 
   async countLogTimetables(): Promise<void>{
@@ -129,69 +130,92 @@ export class MigrationService {
     return this.is_migrating
   }
 
+  //TODO
+  //double check all patters to ensure runners are always closed
   async createStopsTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table stops in database Live');
-
-    // Check if log table exists, if not create it
-    try{
-    await queryRunner.startTransaction();
-    const stopsTableExists = await queryRunner.hasTable('stops');
+    this.logger.log('checking if table stops exists in database Live');
+    const stopsTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('stops');
+      } catch (error) {
+        this.logger.error('Stop table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })      
 
     if (!stopsTableExists) {
+    await retryOnBusy(async () => {
       this.logger.log('Creating stops table in database Live...');
-      await queryRunner.query(`
-        CREATE TABLE IF NOT EXISTS stops (
-          stop_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          stop_name VARCHAR NOT NULL,
-          stop_code VARCHAR NOT NULL,
-          latitude REAL NOT NULL,
-          longitude REAL NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          modification_date_time INTEGER NOT NULL,
-          "valid"	INTEGER DEFAULT 1,
-          UNIQUE(stop_code, modification_date_time)
-        )
-      `);
-    await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_stops_stop_code_covering ON stops(stop_code, stop_id);
-      `);
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{
+        await createTableRunner.query(`
+          CREATE TABLE IF NOT EXISTS stops (
+            stop_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            stop_name VARCHAR NOT NULL,
+            stop_code VARCHAR NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            modification_date_time INTEGER NOT NULL,
+            "valid"	INTEGER DEFAULT 1,
+            UNIQUE(stop_code, modification_date_time)
+          )
+        `);
+      await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_stops_stop_code_covering ON stops(stop_code, stop_id);
+        `);
 
-    await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_stops_stop_code_valid_stop_id ON stops(stop_code, valid, stop_id);
-      `);
+      await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_stops_stop_code_valid_stop_id ON stops(stop_code, valid, stop_id);
+        `);
 
 
-      this.logger.log('stops table created successfully');  
-      } else {
-      this.logger.log('stops table already exists');
+        this.logger.log('Stops table created successfully');  
+        await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Stops table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
+      }
+    })         
+
+    } else {
+      this.logger.log('Stops table already exists');
     }
-    await queryRunner.commitTransaction();
-  } catch (error) {
-    this.logger.error('Migration failed:', error);
-    await queryRunner.rollbackTransaction();
-    throw error;   
-            } finally {
-        await queryRunner.release();
-          }
-
   }
 
+
   async createjourneysTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table journeys in database Live');
+    this.logger.log('checking if table journeys exists in database Live');
+    const journeysTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('journeys');
+      } catch (error) {
+        this.logger.error('Journeys table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })     
 
-
-    // Check if log table exists, if not create it
-  try{
-      await queryRunner.startTransaction();
-      const journeysTableExists = await queryRunner.hasTable('journeys');
-
-      if (!journeysTableExists) {
-        this.logger.log('Creating journeys table in database Live...');
-        await queryRunner.query(`
+    if (!journeysTableExists) {
+    await retryOnBusy(async () => {
+      this.logger.log('Creating journeys table in database Live...');
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{
+        await createTableRunner.query(`
           CREATE TABLE IF NOT EXISTS journeys (
             journey_id INTEGER PRIMARY KEY AUTOINCREMENT,
             service VARCHAR NOT NULL,
@@ -212,45 +236,59 @@ export class MigrationService {
         `);
 
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_journeys_join ON journeys (service, origin_code, destination_code, date_modified, count, journey_id);
       `);
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_journeys_arrivals ON journeys (service, origin_code, destination_code, count, valid, journey_id);
       `);
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_journey_service_direction ON journeys(service, direction, journey_id);
       `);
 
-        this.logger.log('journeys table created successfully');
-      } else {
-        this.logger.log('journeys table already exists');
+      this.logger.log('Journeys table created successfully');  
+      await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Journeys table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
       }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;   
-            } finally {
-        await queryRunner.release();
-          }
+    })         
 
-}
+    } else {
+      this.logger.log('Journeys table already exists');
+    }
+  }
+
   
   async createLogsTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table logs in database Live');
 
-    // Check if log table exists, if not create it
-    try{
-      await queryRunner.startTransaction();
-      const logsTableExists = await queryRunner.hasTable('logs');
+    this.logger.log('checking if table logs exists in database Live');
+    const logsTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('logs');
+      } catch (error) {
+        this.logger.error('Logs table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })   
 
-      if (!logsTableExists) {
-        await queryRunner.query(`
+    if (!logsTableExists) {
+    await retryOnBusy(async () => {
+      this.logger.log('Creating stops table in database Live...');
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{
+        await createTableRunner.query(`
           CREATE TABLE "logs" (
             "log_id"	INTEGER,
             "stop_sequence"	INTEGER NOT NULL,
@@ -266,45 +304,56 @@ export class MigrationService {
           )
         `);
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_logs_stop_journey_log ON logs (stop_id, journey_id, log_id);
       `);
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_logs_journey_stop_log ON logs (journey_id, stop_id, log_id);
       `);
 
-      await queryRunner.query(`
+      await createTableRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_log_journey_id_stop_sequence ON logs(journey_id, stop_sequence);
       `);
 
-
-        this.logger.log('logs table created successfully');
-      } else {
-        this.logger.log('logs table already exists');
+        this.logger.log('Logs table created successfully');  
+        await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Logs table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
       }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;   
-              } finally {
-        await queryRunner.release();
-          }
-
+    })  
+    } else {
+      this.logger.log('Logs table already exists');
+    } 
   }
 
   async createArrivalsTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table arrivals in database Live');
-  
-      // Check if log table exists, if not create it
-    try{
-      await queryRunner.startTransaction();
-      const arrivalsTableExists = await queryRunner.hasTable('arrivals');
+    this.logger.log('checking if table arrivals exists in database Live');
+    const arrivalsTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('arrivals');
+      } catch (error) {
+        this.logger.error('Arrivals table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })     
 
-      if (!arrivalsTableExists) {
-        await queryRunner.query(`
+    if (!arrivalsTableExists) {
+    await retryOnBusy(async () => {
+      this.logger.log('Creating arrivals table in database Live...');
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{
+        await createTableRunner.query(`
           CREATE TABLE arrivals (
             arrival_id INTEGER PRIMARY KEY AUTOINCREMENT,
             trip_code INTEGER NOT NULL,
@@ -316,41 +365,52 @@ export class MigrationService {
           )
         `);
 
-      await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_arrival_log_id ON arrivals(log_id);
-      `);
+        await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_arrival_log_id ON arrivals(log_id);
+        `);
 
-      await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_arrival_time ON arrivals(time);
-      `);
-
-        this.logger.log('arrivals table created successfully');
-      } else {
-        this.logger.log('arrivals table already exists');
+        await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_arrival_time ON arrivals(time);
+        `);
+        this.logger.log('Arrivals table created successfully');  
+        await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Arrivals table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
       }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;   
-              } finally {
-        await queryRunner.release();
-          }
+    })   
+    } else {
+      this.logger.log('Arrivals table already exists');
+    }
+  }
 
-
-  } 
 
   async createTimetablesInformationTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table timetable_information in database Live');
-  
-    try{
-      await queryRunner.startTransaction();
-      const arrivalsTableExists = await queryRunner.hasTable('timetables_information');
+    this.logger.log('checking if table timetables_information exists in database Live');
+    const timetablesInformationTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('timetables_information');
+      } catch (error) {
+        this.logger.error('Timetables_information table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })     
 
-      if (!arrivalsTableExists) {
-        await queryRunner.query(`
+    if (!timetablesInformationTableExists) {
+    await retryOnBusy(async () => {
+      this.logger.log('Creating timetables_information table in database Live...');
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{    
+        await createTableRunner.query(`
           CREATE TABLE "timetables_information" (
             "timetable_information_id"	INTEGER NOT NULL,
             "log_id"	INTEGER,
@@ -364,45 +424,54 @@ export class MigrationService {
           )
         `);
 
-      await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_timetables_log_id ON timetables_information(log_id);
-      `);
+        await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_timetables_log_id ON timetables_information(log_id);
+        `);
 
-      await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_timetables_log_day_date 
-      ON timetables_information (log_id, day, date_valid_on);
-      `);
-
-
-
-        this.logger.log('timetables_information table created successfully');
-      } else {
-        this.logger.log('timetables_information table already exists');
+        await createTableRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_timetables_log_day_date 
+        ON timetables_information (log_id, day, date_valid_on);
+        `);
+        this.logger.log('Timetables_information table created successfully');  
+        await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Timetables_information table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
       }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;   
-              } finally {
-        await queryRunner.release();
-          }
+    })         
 
-
-  } 
+    } else {
+      this.logger.log('Timetables_information table already exists');
+    }
+  }        
 
   async createTimetableTable(): Promise<void>{
-    const queryRunner = this.liveDataSource.createQueryRunner();
-    await queryRunner.connect();
-    this.logger.log('Setting up table timetables in database Live');
-  
-      // Check if log table exists, if not create it
-    try{
-      await queryRunner.startTransaction();
-      const arrivalsTableExists = await queryRunner.hasTable('timetables');
 
-      if (!arrivalsTableExists) {
-        await queryRunner.query(`
+    this.logger.log('checking if table timetables exists in database Live');
+    const timetablesTableExists = await retryOnBusy(async () => {
+      const checkTableRunner = this.liveDataSource.createQueryRunner();
+      await checkTableRunner.connect()
+      try{
+        return await checkTableRunner.hasTable('stops');
+      } catch (error) {
+        this.logger.error('Timetables table check failed:', error);
+        throw error;   
+      } finally {
+        await checkTableRunner.release();
+      }
+    })   
+
+    if (!timetablesTableExists) {
+    await retryOnBusy(async () => {
+      this.logger.log('Creating timetables table in database Live...');
+      const createTableRunner = this.liveDataSource.createQueryRunner();
+      await createTableRunner.connect()
+      await createTableRunner.startTransaction()
+      try{
+        await createTableRunner.query(`
           CREATE TABLE "timetables" (
             "timetable_id"	INTEGER NOT NULL,
             "time"	TEXT NOT NULL,
@@ -412,26 +481,27 @@ export class MigrationService {
             FOREIGN KEY("timetable_information_id") REFERENCES "timetables_information"("timetable_information_id") ON DELETE CASCADE
           )
         `);
-        this.logger.log('timetables table created successfully');
-      } else {
-        this.logger.log('timetables table already exists');
+        this.logger.log('Timetables table created successfully');  
+        await createTableRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Timetables table create failed:', error);
+        await createTableRunner.rollbackTransaction();
+        throw error;   
+      } finally {
+        await createTableRunner.release();
       }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw error;   
-          } finally {
-        await queryRunner.release();
-          }
+    })         
 
-  } 
+    } else {
+      this.logger.log('Timetables table already exists');
+    }
+  }
   
   async performMigrationStops(): Promise<void>{
       this.logger.log('Starting stops database migration...');
       let limit = 1000;
       let offset = 0
-      let stopsBasic : StopBasic[];
+      let stopsBasic : StopBasic[] = [];
       let hasMoreRows = true;
 
       while (hasMoreRows) {
@@ -443,6 +513,8 @@ export class MigrationService {
           'SELECT * FROM stops_basic ORDER BY ATCOCode LIMIT ? OFFSET ?',
           [limit, offset]
         );
+      } catch (error){
+        this.logger.error('Error when inserting stops:', error);
       } finally {
         await readRunner.release();
       }
@@ -461,7 +533,7 @@ export class MigrationService {
           await this.migrateStopsBatch(stopsBasic, writeRunner);        
           await writeRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while performing Stops batch insert:', error);
           await writeRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -501,7 +573,7 @@ export class MigrationService {
     this.logger.log('Starting journeys database migration...');
     let limit = 1000;
     let offset = 0
-    let journeyBasic : JourneyBasic[];
+    let journeyBasic : JourneyBasic[] = [];
     await retryOnBusy(async () => {
       const writeRunner = this.liveDataSource.createQueryRunner();
       await writeRunner.connect();
@@ -521,8 +593,9 @@ export class MigrationService {
         ) t
         WHERE rn = 1`
         );
+        writeRunner.commitTransaction()
       } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error when creating temporary tables:', error);
           await writeRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -541,6 +614,8 @@ export class MigrationService {
           'SELECT * FROM temp_batch ORDER BY "Index" LIMIT ? OFFSET ?',
           [limit, offset]
         );
+      } catch (error){
+        this.logger.error('Error when selecting from temp_batch:', error);
       } finally {
         readRunner.release()
       }
@@ -556,8 +631,9 @@ export class MigrationService {
         await BatchRunner.startTransaction();
         try{
           this.migratejourneysBatch(journeyBasic, BatchRunner);
+          BatchRunner.commitTransaction()
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error when performing Jourenys batch:', error);
           await BatchRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -621,12 +697,12 @@ export class MigrationService {
             ORDER BY jb."Index"
             LIMIT ? OFFSET ?
           `, [batchSize, offset]);
-          } catch (error) {
-            this.logger.error('Failed to create Logs:', error);
-            throw error;
-          }finally {
-            readRunner.release()
-          }
+        } catch (error) {
+          this.logger.error('Failed find stop journey link:', error);
+          throw error;
+        }finally {
+          readRunner.release()
+        }
 
         if (result.length === 0) {
           hasMore = false;
@@ -644,7 +720,7 @@ export class MigrationService {
               row.stop_list
             );
           } catch (error) {
-            this.logger.error('Failed to create Logs:', error);
+            this.logger.error('Error while filding stopIds', error);
             throw error;
           }finally {
             stopIDRunner.release()
@@ -685,7 +761,7 @@ export class MigrationService {
               );
               await batchRunner.commitTransaction();
             } catch (error) {
-              this.logger.error('Migration failed:', error);
+              this.logger.error('Error while populating Log Batches:', error);
               await batchRunner.rollbackTransaction();
               throw error;
             } finally {
@@ -735,6 +811,8 @@ export class MigrationService {
     return id_position_list
   }
 
+  // TODO
+  // Check if this should have the same pattern as before
   async populateLogBatches(logs: Log[], queryRunner:any): Promise<void> {
     this.logger.log('Starting batch log population...');
     try {   
@@ -744,7 +822,6 @@ export class MigrationService {
       }
       const chunkSize = 1000
       for (let i = 0; i < logs.length; i += chunkSize) {
-        await queryRunner.startTransaction();
         const values = logs.slice(i, i+chunkSize).flatMap(log => 
           [log.stop_id, log.journey_id, log.stop_sequence]
         );
@@ -755,7 +832,6 @@ export class MigrationService {
           (stop_id, journey_id, stop_sequence)
           VALUES ${placeholders}`, values
         );        
-        await queryRunner.commitTransaction();
       }
     }  catch (error) {
       this.logger.error('Failed to population logs:', error);
@@ -787,7 +863,7 @@ export class MigrationService {
             LIMIT ${batchSize}
           `);
           } catch (error) {
-            this.logger.error('Failed to create Logs:', error);
+            this.logger.error('Error while selecting valid arrival_basic:', error);
             throw error;
           }finally {
             readRunner.release()
@@ -834,7 +910,7 @@ export class MigrationService {
             this.logger.log('Arrival batch migrated');
             await batchRunner.commitTransaction();
           } catch (error) {
-            this.logger.error('Migration failed:', error);
+            this.logger.error('Error while inserting arrival Batch:', error);
             await batchRunner.rollbackTransaction();
             throw error;
           } finally {
@@ -846,7 +922,7 @@ export class MigrationService {
   }
 
   async performMigrationTimetables(): Promise<void>{
-
+  try{
     this.logger.log('Merging timetables');    
     // --- 1. Create temporary tables if not exist ---
     this.logger.log('Creating temp tables');
@@ -899,7 +975,7 @@ export class MigrationService {
 
         await tempCreateRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while creating temp tables:', error);
           await tempCreateRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -937,7 +1013,7 @@ export class MigrationService {
         `);
       await tempgroupsRunner.commitTransaction();
     } catch (error) {
-      this.logger.error('Migration failed:', error);
+      this.logger.error('Error while inserting into temp groups:', error);
       await tempgroupsRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -955,7 +1031,7 @@ export class MigrationService {
           CREATE TEMP TABLE IF NOT EXISTS precomputed_timetables AS
           SELECT 
               l.log_id AS logId,
-              tb.name AS batchId,   -- adjust column name if different
+              tb.name AS batchId,   
               tb.time AS time
           FROM timetables_basic tb
           INNER JOIN stops s ON tb.stop_id = s.stop_code
@@ -976,7 +1052,7 @@ export class MigrationService {
 
       await precomputeRunner.commitTransaction();
     } catch (error) {
-      this.logger.error('Migration failed:', error);
+      this.logger.error('Error while precalculating joins:', error);
       await precomputeRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -1010,7 +1086,7 @@ export class MigrationService {
 
       keyRunner.commitTransaction()
     } catch (error) {
-      this.logger.error('Migration failed:', error);
+      this.logger.error('Error while compiling previous timetable keys:', error);
       await keyRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -1036,7 +1112,7 @@ export class MigrationService {
           [CHUNK_SIZE, offset]
         );
       } catch (error) {
-        this.logger.error('Migration failed:', error);
+        this.logger.error('Error while selecting batch from groups:', error);
         throw error;
       } finally {
         await readRunner.release();
@@ -1072,7 +1148,7 @@ export class MigrationService {
           await chunkGroupsRunner.query(insertChunkSql, chunkParams);
           await chunkGroupsRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while deleting and filling chunk_groups:', error);
           await chunkGroupsRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -1129,7 +1205,7 @@ export class MigrationService {
           insertedInfos = await insertedInfosRunner.query(insertInfoSql, infoParams);
           await insertedInfosRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while inserting into timetables_information :', error);
           await insertedInfosRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -1137,6 +1213,10 @@ export class MigrationService {
         }      
         return insertedInfos      
       })
+      
+      if (insertedInfos.length === 0){
+        continue
+      }
 
       // --- 2f. Map (logId, cnt, hash) -> new ID ---
       const infoMap = new Map(
@@ -1167,7 +1247,7 @@ export class MigrationService {
           await newInfoBatchRunner.query(insertMappingSql, mappingParams);
           await newInfoBatchRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while insering into new__info_batch:', error);
           await newInfoBatchRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -1194,7 +1274,7 @@ export class MigrationService {
           `);
           await timetableInformationRunner.commitTransaction();
         } catch (error) {
-          this.logger.error('Migration failed:', error);
+          this.logger.error('Error while inserting into timetables:', error);
           await timetableInformationRunner.rollbackTransaction();
           throw error;
         } finally {
@@ -1203,27 +1283,32 @@ export class MigrationService {
       })
 
     }
-  await retryOnBusy(async () => {
-    const cleanupRunner = this.liveDataSource.createQueryRunner();
-    await cleanupRunner.connect() 
-    await cleanupRunner.startTransaction();  
+  } catch (error) {
+    this.logger.error('Migration failed:', error);
+    throw error;
+  } finally { 
+    await retryOnBusy(async () => {
+      const cleanupRunner = this.liveDataSource.createQueryRunner();
+      await cleanupRunner.connect() 
+      await cleanupRunner.startTransaction();  
 
-    try{
-      await cleanupRunner.query(`DROP TABLE chunk_groups`);
-      await cleanupRunner.query(`DROP TABLE precomputed_timetables`);
-      await cleanupRunner.query(`DROP TABLE new_info_batch`);
-      await cleanupRunner.query(`DROP TABLE temp_groups`);
-      await cleanupRunner.query(`DROP TABLE most_recent_keys`);
-      await cleanupRunner.commitTransaction();
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
-      await cleanupRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await cleanupRunner.release();
-    }  
-  })
+      try{
+        await cleanupRunner.query(`DROP TABLE IF EXISTS chunk_groups`);
+        await cleanupRunner.query(`DROP TABLE IF EXISTS precomputed_timetables`);
+        await cleanupRunner.query(`DROP TABLE IF EXISTS new_info_batch`);
+        await cleanupRunner.query(`DROP TABLE IF EXISTS temp_groups`);
+        await cleanupRunner.query(`DROP TABLE IF EXISTS most_recent_keys`);
+        await cleanupRunner.commitTransaction();
+      } catch (error) {
+        this.logger.error('Error while cleaning up temp tables:', error);
+        await cleanupRunner.rollbackTransaction();
+        throw error;
+      } finally {
+        await cleanupRunner.release();
+      }  
+    })
   }
+}
 
   private getDate(unixTime : number): number{
       const date = new Date(unixTime * 1000); 

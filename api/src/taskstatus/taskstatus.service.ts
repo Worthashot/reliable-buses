@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class TaskStatusService {
   
 
   private readonly logger = new Logger(TaskStatusService.name);
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(@InjectDataSource('live')
+              private readonly dataSource: DataSource) {}
 
 
   async isTaskRunning(taskName: string): Promise<boolean> {

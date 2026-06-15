@@ -22,6 +22,7 @@ import { ConfigService } from '@nestjs/config';
 import { MailService } from './mail/mail.service';
 import { MailController } from './mail/mail.controller';
 import { MigrationModule } from './migration/migration.module';
+import { TaskStatusModule } from './taskstatus/taststatus.module';
 const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
 @Module({
   imports: [
@@ -66,7 +67,7 @@ const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
       })
     }),
 
-
+    TaskStatusModule,
     LogModule,
     MigrationModule,
     AuthModule,

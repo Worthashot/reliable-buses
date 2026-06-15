@@ -1,5 +1,4 @@
 import { Module  } from '@nestjs/common';
-import { MigrationModule } from './migration/migration.module';
 import {AuthModule} from './auth/auth.module';
 import { TypeOrmModule  } from '@nestjs/typeorm';
 import { ApiKeyEntity } from './auth/entities/apikey.entity';
@@ -22,7 +21,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from './mail/mail.service';
 import { MailController } from './mail/mail.controller';
-
+import { MigrationModule } from './migration/migration.module';
 const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
 @Module({
   imports: [
@@ -48,7 +47,7 @@ const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
     TypeOrmModule.forRootAsync({
       name: "live",
       useFactory: () => ({
-      type: 'sqlite',
+      type: 'better-sqlite3',
       database: databasePath, 
       entities: [ApiKeyEntity, 
         JourneyBasicEntity, ArrivalBasicEntity, StopBasicEntity, TimetableBasicEntity,

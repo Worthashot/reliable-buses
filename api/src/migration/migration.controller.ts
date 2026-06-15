@@ -17,7 +17,7 @@ export class MigrationController {
   @Admin()
   @Post('daily_migration')
   async runMigrationLogs(@Res() res: Response) {
-  if (this.taskStatus.isTaskRunning("migrating")) {
+  if (await this.taskStatus.isTaskRunning("migrating")) {
     throw new ServiceUnavailableException({
       statusCode: 503,
       error: 'Service Unavailable',

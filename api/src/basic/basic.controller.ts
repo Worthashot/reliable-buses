@@ -41,7 +41,7 @@ export class BasicController {
   @Admin()
   @Post('new_journeys')
   async addNewJourneysBasic(@Body() elements: JourneyBasicAddElementDto[]) {
-    if (this.taskStatus.isTaskRunning("migrating")) {
+    if (await this.taskStatus.isTaskRunning("migrating")) {
         throw new ServiceUnavailableException({
           statusCode: 503,
           error: 'Service Unavailable',
@@ -62,7 +62,7 @@ export class BasicController {
   @Admin()
   @Post('new_stops')
   async addNewStopsBasic(@Body() elements: StopBasicAddElementDto[]) {
-    if (this.taskStatus.isTaskRunning("migrating")) {
+    if (await this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -82,7 +82,7 @@ export class BasicController {
   @Post('new_arrivals')
   async addNewArrivalsBasic(@Body() elements: ArrivalBasicAddElementDto[]) {
 
-    if (this.taskStatus.isTaskRunning("migrating")) {
+    if (await this.taskStatus.isTaskRunning("migrating")) {
       this.logger.log('database merging, blocking request');
       throw new ServiceUnavailableException({
         statusCode: 503,
@@ -102,7 +102,7 @@ export class BasicController {
   @Admin()
   @Post('new_timetables')
   async addNewTimetablesBasic(@Body() elements: TimetableBasicAddElementDto[]) {     
-    if (this.taskStatus.isTaskRunning("migrating")) {
+    if (await this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -170,7 +170,7 @@ export class BasicController {
   @Admin()
   @Delete('delete_matching_invalid_arrivals')
   async deleteMatchingArrivalsBasic(@Body() elements: ArrivalBasicModifyElementDto[]) {
-    if (this.taskStatus.isTaskRunning("migrating")) {
+    if (await this.taskStatus.isTaskRunning("migrating")) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',
@@ -203,7 +203,7 @@ export class BasicController {
   @Admin()
   @Delete('delete_old')
   async deleteOldBasicEntities(@Res() res: Response) {
-    if ((this.taskStatus.isTaskRunning("migrating")) || (this.taskStatus.isTaskRunning("deleting"))) {
+    if ((await this.taskStatus.isTaskRunning("migrating")) || (await this.taskStatus.isTaskRunning("deleting"))) {
       throw new ServiceUnavailableException({
         statusCode: 503,
         error: 'Service Unavailable',

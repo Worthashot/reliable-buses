@@ -16,7 +16,9 @@ export class TaskStatusService {
       'SELECT status FROM task_status WHERE task_name = ?',
       [taskName]
     );
-    return result?.[0] === '1';
+    const truth = result?.[0] === '1'
+    this.logger.log('Task "${task_name}" is "${truth}"');
+    return truth;
   }
 
   async isTaskFailed(taskName: string): Promise<boolean> {
@@ -24,10 +26,13 @@ export class TaskStatusService {
       'SELECT status FROM task_status WHERE task_name = ?',
       [taskName]
     );
-    return result?.[0] === '2';
+    const truth = result?.[0] === '1'
+    this.logger.log('Task "${task_name}" is "${truth}"');
+    return truth;
   }
 
   async startTask(taskName: string): Promise<void> {
+    this.logger.log('Starting task "${taskName}"');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -49,6 +54,7 @@ export class TaskStatusService {
   }
 
   async failTask(taskName: string): Promise<void> {
+    this.logger.log('Failing task "${taskName}"');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -70,6 +76,7 @@ export class TaskStatusService {
   }
 
   async endTask(taskName: string): Promise<void> {
+    this.logger.log('Ending task "${taskName}"');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

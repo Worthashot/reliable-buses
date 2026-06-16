@@ -18,7 +18,7 @@ export class TaskStatusService {
     );
     this.logger.log('Task ' + taskName + ' is ' + result[0]?.status);
     this.logger.log('Running status is ' + result[0]?.status === '1');
-    return result[0]?.status === '1'
+    return result[0]?.status === 1
   }
 
   async isTaskFailed(taskName: string): Promise<boolean> {
@@ -26,9 +26,8 @@ export class TaskStatusService {
       'SELECT status FROM task_status WHERE task_name = ?',
       [taskName]
     );
-    const truth = result[0]?.status === '1'
     this.logger.log('Task ' + taskName + ' is ' + result[0]?.status);
-    return truth;
+    return result[0]?.status === 2;
   }
 
   async startTask(taskName: string): Promise<void> {

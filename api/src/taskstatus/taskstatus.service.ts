@@ -49,7 +49,7 @@ export class TaskStatusService implements OnModuleInit {
   }
 
   async startTask(taskName: string): Promise<void> {
-    this.logger.log('Starting task "${taskName}"');
+    this.logger.log('Starting task ${taskName}');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -71,7 +71,7 @@ export class TaskStatusService implements OnModuleInit {
   }
 
   async failTask(taskName: string): Promise<void> {
-    this.logger.log('Failing task "${taskName}"');
+    this.logger.log('Failing task ${taskName}');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -93,7 +93,7 @@ export class TaskStatusService implements OnModuleInit {
   }
 
   async endTask(taskName: string): Promise<void> {
-    this.logger.log('Ending task "${taskName}"');
+    this.logger.log('Ending task ${taskName}');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

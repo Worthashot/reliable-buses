@@ -835,7 +835,7 @@ export class MigrationService {
       let hasMore = true;
       this.logger.log('Starting arrivals database migration...');
       while (hasMore) {
-        this.logger.log('Migrating Arrival batch');
+        this.logger.log('Migrating Arrival batch from ${offset+1} to ${offset + batchSize}');
 
         const readRunner = this.liveDataSource.createQueryRunner();
         await readRunner.connect();

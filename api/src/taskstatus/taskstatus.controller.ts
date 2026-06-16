@@ -12,10 +12,13 @@ export class TaskStatusController {
   @Post('get_status')
   async getStatus(@Body() task_name: string){
     if (await this.taskStatusService.isTaskRunning(task_name)){
+      this.logger.log('Task "${task_name}" is running');
       return "running"
     } else if (await this.taskStatusService.isTaskFailed(task_name)) {
+      this.logger.log('Task "${task_name}" has running');
       return "failed"
      } else {
+      this.logger.log('Task "${task_name}" has succeeded');
       return "succeeded"
      }
   }

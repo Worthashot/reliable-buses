@@ -78,5 +78,6 @@ const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
 
   providers: [MailService],
   controllers: [MailController],
+  exports: [TypeOrmModule],
 })
 export class AppModule {}

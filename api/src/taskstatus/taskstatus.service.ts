@@ -1,15 +1,34 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit  } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
-export class TaskStatusService {
+export class TaskStatusService implements OnModuleInit {
   
 
   private readonly logger = new Logger(TaskStatusService.name);
   constructor(@InjectDataSource('live')
               private readonly dataSource: DataSource) {}
 
+  async onModuleInit() {
+    //Clear all previous tasks
+      this.logger.log('Starting task "${taskName}"');
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      try{
+        await queryRunner.query(
+          `DELETE FROM task_status;`,
+        );      
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        this.logger.error('Failed to clear tasks', error);
+        throw error;
+      } finally {
+        await queryRunner.release();
+      }
+  }
 
   async isTaskRunning(taskName: string): Promise<boolean> {
     const result = await this.dataSource.query(

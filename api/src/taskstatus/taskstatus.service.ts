@@ -16,9 +16,8 @@ export class TaskStatusService {
       'SELECT status FROM task_status WHERE task_name = ?',
       [taskName]
     );
-    const truth = result?.[0] === '1'
-    this.logger.log('Task "${task_name}" is "${truth}"');
-    return truth;
+    this.logger.log('Task ' + taskName + ' is ' + result?.[0]);
+    return result?.[0] === '1'
   }
 
   async isTaskFailed(taskName: string): Promise<boolean> {
@@ -27,7 +26,7 @@ export class TaskStatusService {
       [taskName]
     );
     const truth = result?.[0] === '1'
-    this.logger.log('Task "${task_name}" is "${truth}"');
+    this.logger.log('Task ' + taskName + ' is ' + result?.[0]);
     return truth;
   }
 
@@ -46,7 +45,7 @@ export class TaskStatusService {
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Failed to start task "${taskName}":', error);
+      this.logger.error('Failed to start task ' + taskName + ':', error);
       throw error;
     } finally {
       await queryRunner.release();
@@ -68,7 +67,7 @@ export class TaskStatusService {
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Failed to start task "${taskName}":', error);
+      this.logger.error('Failed to fail task ' + taskName + ':', error);
       throw error;
     } finally {
       await queryRunner.release();
@@ -90,7 +89,7 @@ export class TaskStatusService {
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Failed to start task "${taskName}":', error);
+      this.logger.error('Failed to end task ' + taskName + ':', error);
       throw error;
     } finally {
       await queryRunner.release();

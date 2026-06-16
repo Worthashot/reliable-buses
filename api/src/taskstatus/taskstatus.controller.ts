@@ -11,9 +11,9 @@ export class TaskStatusController {
   @Admin()
   @Post('get_status')
   async getStatus(@Body() task_name: string){
-    if (this.taskStatusService.isTaskRunning(task_name)){
+    if (await this.taskStatusService.isTaskRunning(task_name)){
       return "running"
-    } else if (this.taskStatusService.isTaskFailed(task_name)) {
+    } else if (await this.taskStatusService.isTaskFailed(task_name)) {
       return "failed"
      } else {
       return "succeeded"

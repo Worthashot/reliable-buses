@@ -17,7 +17,6 @@ export class TaskStatusService {
       [taskName]
     );
     this.logger.log('Task ' + taskName + ' is ' + result[0]?.status);
-    this.logger.log('Running status is ' + result[0]?.status === '1');
     return result[0]?.status === 1
   }
 

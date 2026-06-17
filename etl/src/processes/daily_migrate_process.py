@@ -37,8 +37,8 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
             break
         # Before migrating, wait for any validating to finish
         try:
-            status = "validating"
-            while status == "validating":
+            status = "running"
+            while status == "running":
                 if process_shutdown_event.is_set():
                     break
                 logger.info("Checking if API is validating")
@@ -120,8 +120,8 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
             break
         # wait for migrating to finish
         try:
-            status = "migrating"
-            while status == "migrating":
+            status = "running"
+            while status == "running":
                 if process_shutdown_event.is_set():
                     break
                 logger.info("Checking if API is merging")
@@ -181,8 +181,8 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
         # If validation was waiting for migration to finish, it may have started before deletion started. So make
         # sure validation has finished again.
         try:
-            status = "validating"
-            while status == "validating":
+            status = "running"
+            while status == "running":
                 if process_shutdown_event.is_set():
                     break
                 logger.info("Checking if API is validating")
@@ -266,8 +266,8 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
 
         # wait until deleting has finished
         try:
-            status = "deleting"
-            while status == "deleting":
+            status = "running"
+            while status == "running":
                 if process_shutdown_event.is_set():
                     break
                 logger.info("Checking if API is deleting")

@@ -45,8 +45,6 @@ def timetable_manager_daily_process(
             logger.exception(
                 "High Error in TimetableManager.daily_timetable_check()\n" + repr(e)
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
             subject = "timetable_manager_daily_process High Error :" + repr(e)
             details = (
                 "High Error in timetable_manager_daily_process:\n"
@@ -54,9 +52,6 @@ def timetable_manager_daily_process(
                 + "\n"
                 + "New timetables not read. "
             )
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
     logger.info("Process shutdown recieved, terminating")

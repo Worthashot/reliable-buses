@@ -65,12 +65,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                     + " Migration of tables not achieved. Cleanup of old tables not achieved. "
                     + "API integrity needs checked. If this continues, may have filesize issues."
                 )
-                url = bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": bus_project_key}
-                try:
-                    api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
                 continue
 
         except Exception as e:
@@ -83,12 +78,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Migration of tables not achieved. Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
 
         # begin migrating
@@ -109,12 +99,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Migration of tables not achieved. Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
         if process_shutdown_event.is_set():
             break
@@ -148,12 +133,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                     + " Migration of tables not achieved. Cleanup of old tables not achieved. "
                     + "API integrity needs checked. If this continues, may have filesize issues."
                 )
-                url = bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": bus_project_key}
-                try:
-                    api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
                 continue
 
         except Exception as e:
@@ -168,12 +148,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Migration of tables not achieved. Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
 
         logger.info("API finished merging")
@@ -209,12 +184,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                     + " Migration of tables not achieved. Cleanup of old tables not achieved. "
                     + "API integrity needs checked. If this continues, may have filesize issues."
                 )
-                url = bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": bus_project_key}
-                try:
-                    api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
                 continue
 
         except Exception as e:
@@ -227,12 +197,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Migration of tables not achieved. Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
 
         # After migration has finished, delete old tables
@@ -256,12 +221,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Migration of tables not achieved. Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
 
         # wait until deleting has finished
@@ -294,12 +254,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                     + "Cleanup of old tables not achieved. "
                     + "API integrity needs checked. If this continues, may have filesize issues."
                 )
-                url = bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": bus_project_key}
-                try:
-                    api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
                 continue
 
         except Exception as e:
@@ -314,12 +269,7 @@ def daily_migrate_process(process_shutdown_event, bus_project_url, bus_project_k
                 + "Cleanup of old tables not achieved. "
                 + "If this continues, may have filesize issues."
             )
-            url = bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": bus_project_key}
-            try:
-                api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e2:
-                logger.exception("High Error, unable to mail error.\n" + repr(e2))
+            api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
             continue
 
         logger.info("API finished deleting")

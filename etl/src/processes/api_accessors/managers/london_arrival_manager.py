@@ -94,8 +94,6 @@ class LondonArrivalManager:
                 logger.exception(
                     f"High error, unable to lookup API for today's journeys at {url}\n{e!r}"
                 )
-                url = self.database_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_api_key}
                 subject = f"LondonArrivalManager High Error: cannot lookup Project API : {e!r}"
                 details = (
                     "High error, unable to lookup daily API for journey change. will proceed using previous "
@@ -105,11 +103,7 @@ class LondonArrivalManager:
                     + f" Error Code {e!r}"
                     + "."
                 )
-
-                try:
-                    self.api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
                 return None
 
             df = pd.DataFrame(request.json())
@@ -222,8 +216,6 @@ class LondonArrivalManager:
                     + ". Unable to lookup periodic API for bus arrivals. Busses for this period will not"
                     + " be recorded"
                 )
-                url = self.database_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_api_key}
                 subject = "LondonArrivalManager Medium Error: " + repr(e)
                 details = (
                     "Medium error, unable to lookup periodic API for bus arrivals. Busses for this period will not"
@@ -231,10 +223,7 @@ class LondonArrivalManager:
                     + "URL "
                     + url
                 )
-                try:
-                    self.api_manager.post_error(url, headers, subject, details, logger)
-                except Exception as e:
-                    logger.exception("High Error, unable to mail error.\n" + repr(e))
+                self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
                 return
 
             data = r.json()

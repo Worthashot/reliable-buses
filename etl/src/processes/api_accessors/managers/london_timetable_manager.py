@@ -50,17 +50,12 @@ class LondonTimetableManager:
                 + "Error: "
                 + repr(e)
             )
-            url = self.database_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonTimetableManager High Error : " + repr(e)
             details = (
                 f"High error, unable to lookup Project API for daily_services at {url}."
                 + " Unable to find timetables for today"
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
             return
         logger.info("TFL API searched. Looping over available services.")
         data = r.json()

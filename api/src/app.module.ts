@@ -58,11 +58,12 @@ const databasePath = process.env.DATABASE_PATH || 'London_Main.db';
           extra: {
       busyTimeout: 5000, // milliseconds
       },
-      onConnect: async (connection) => {
-      await connection.query('PRAGMA journal_mode = WAL');
-      await connection.query('PRAGMA synchronous = NORMAL');
-      console.log('SQLite WAL mode enabled');
-    }
+    prepareDatabase(db) {
+      db.pragma('journal_mode = WAL');
+      db.pragma('synchronous = NORMAL');
+      // optional: set timeout again via pragma (redundant but safe)
+      db.pragma('busy_timeout = 60000');
+    },
 
       })
     }),

@@ -25,9 +25,9 @@ export class MigrationController {
       retryAfter: 3600,
     });  
   }
-    res.status(202).json({ message: 'Task accepted' });
     this.logger.log('Starting database migration...');
     this.taskStatus.startTask("migrating")
+    res.status(202).json({ message: 'Task accepted' });
     setImmediate(async () => {
       try {
         await this.migrationService.dailyMigration();

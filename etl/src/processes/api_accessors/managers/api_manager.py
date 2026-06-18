@@ -26,6 +26,15 @@ class APIManager:
             None,  # Will check message strings
         }
 
+
+    def send_error_message(self, base_url, key, subject, details, logger):
+        url = base_url + "/mail/send_error_email"
+        headers = {"x-api-key": key}
+        try:
+            self.post_error(url, headers, subject, details, logger)
+        except Exception as e:
+            logger.exception("High Error, unable to mail error.\n" + repr(e))
+
     def post_error(
         self,
         url,

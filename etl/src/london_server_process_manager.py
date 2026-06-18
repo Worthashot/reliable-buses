@@ -41,6 +41,7 @@ class DailyUpdateSequenceError(Exception):
     pass
 
 
+
 class LondonServerProcessManager:
     # initiation code
 
@@ -122,6 +123,9 @@ class LondonServerProcessManager:
             self.startup_from_scratch()
         self.state.save(self.savestate_location)
 
+    def send_error_message(self,subject, details):
+        self.api_manager.send_error_message(self.bus_project_url, self.bus_project_key, subject, details, self.logger)
+
     def startup_from_scratch(self):
         try:
             self.state = AppState()
@@ -169,8 +173,6 @@ class LondonServerProcessManager:
 
         except Exception as e:
             self.logger.exception("Critical Error in startup_from_scratch:\n" + repr(e))
-            url = self.bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_key}
             subject = "startup_from_scratch Critical Error :" + repr(e)
             details = (
                 "Critical Error in startup_from_scratch:\n"
@@ -178,10 +180,7 @@ class LondonServerProcessManager:
                 + "\n"
                 + "program should terminate and restart from scratch."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, self.logger)
-            except Exception as e:
-                self.logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.send_error_message(subject, details)
             self.handle_critical_error()
 
     # ----------------------------------------------------------------------------------------------
@@ -239,8 +238,6 @@ class LondonServerProcessManager:
             self.state.save(self.savestate_location)
         except Exception as e:
             self.logger.exception("Critical Error in save_state\n" + repr(e))
-            url = self.bus_project_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_key}
             subject = "save_state Critical Error :" + repr(e)
             details = (
                 "Critical Error in save_state:\n"
@@ -249,11 +246,7 @@ class LondonServerProcessManager:
                 + "State was unable to be saved."
                 + " program should terminate and restart from scratch"
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, self.logger)
-            except Exception as e:
-                self.logger.exception("High Error, unable to mail error.\n" + repr(e))
-
+            self.send_error_message(subject, details)
             self.handle_critical_error()
         finally:
             self.save_coordinator.end_save()
@@ -279,8 +272,6 @@ class LondonServerProcessManager:
                 self.logger.exception(
                     "Critical Error in ArrivalManager.update_busses()\n" + repr(e)
                 )
-                url = self.bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_key}
                 subject = "daily_update_long_process Critical Error :" + repr(e)
                 details = (
                     "Critical Error in arrival_run_loop:\n"
@@ -288,14 +279,7 @@ class LondonServerProcessManager:
                     + "\n"
                     + "program should terminate and restart from save state."
                 )
-                try:
-                    self.api_manager.post_error(
-                        url, headers, subject, details, self.logger
-                    )
-                except Exception as e:
-                    self.logger.exception(
-                        "High Error, unable to mail error.\n" + repr(e)
-                    )
+                self.send_error_message(subject, details)
                 self.handle_critical_error()
             finally:
                 self.save_coordinator.end_update()
@@ -397,8 +381,6 @@ class LondonServerProcessManager:
                     self.logger.exception(
                         "Critical Error during daily update sequence\n" + repr(e)
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
                     subject = "daily_update_sequence Critical Error :" + repr(e)
                     details = (
                         "Critical Error in daily_update_sequence:\n"
@@ -406,14 +388,7 @@ class LondonServerProcessManager:
                         + "\n"
                         + " Program must shut down and restart from scratch"
                     )
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e)
-                        )
+                    self.send_error_message(subject, details)
                     self.handle_critical_error()
                 self.save_state()
 
@@ -466,16 +441,7 @@ class LondonServerProcessManager:
                         + " program should terminate and restart from scratch. "
                         + "API integrity needs checked."
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e)
-                        )
+                    self.send_error_message(subject, details)
                     self.handle_critical_error()
             except Exception as e:
                 self.logger.exception("High Error in validate_busses()\n" + repr(e))
@@ -486,16 +452,7 @@ class LondonServerProcessManager:
                     + "\n"
                     + "Table entries have not been validated."
                 )
-                url = self.bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_key}
-                try:
-                    self.api_manager.post_error(
-                        url, headers, subject, details, self.logger
-                    )
-                except Exception as e2:
-                    self.logger.exception(
-                        "High Error, unable to mail error.\n" + repr(e2)
-                    )
+                self.send_error_message(subject, details)
                 continue
 
             # todo
@@ -544,16 +501,8 @@ class LondonServerProcessManager:
                         + " program should terminate and restart from scratch. "
                         + "API integrity needs checked."
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e)
-                        )
+                    self.send_error_message(subject, details)
+
                     self.handle_critical_error()
             except Exception as e:
                 self.logger.exception("High Error in validate_busses()\n" + repr(e))
@@ -564,16 +513,7 @@ class LondonServerProcessManager:
                     + "\n"
                     + "Table entries have not been validated."
                 )
-                url = self.bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_key}
-                try:
-                    self.api_manager.post_error(
-                        url, headers, subject, details, self.logger
-                    )
-                except Exception as e2:
-                    self.logger.exception(
-                        "High Error, unable to mail error.\n" + repr(e2)
-                    )
+                self.send_error_message(subject, details)
                 continue
             if self.shutdown_event.is_set():
                 break
@@ -593,16 +533,7 @@ class LondonServerProcessManager:
                     + "\n"
                     + "Table entries have not been validated."
                 )
-                url = self.bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_key}
-                try:
-                    self.api_manager.post_error(
-                        url, headers, subject, details, self.logger
-                    )
-                except Exception as e2:
-                    self.logger.exception(
-                        "High Error, unable to mail error.\n" + repr(e2)
-                    )
+                self.send_error_message(subject, details)
                 continue
             if self.shutdown_event.is_set():
                 self.logger.info("setting API to successful Validating")
@@ -626,16 +557,7 @@ class LondonServerProcessManager:
                         + "\n"
                         + "API validation has not been reset"
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e2:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e2)
-                        )
+                    self.send_error_message(subject, details)
                     self.handle_critical_error()
                 break
             self.save_coordinator.begin_update()
@@ -660,8 +582,6 @@ class LondonServerProcessManager:
                         + repr(e2)
                         + ". Unable to set validator to failed"
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
                     subject = "daily_update_sequence Critical Error :" + repr(e2)
                     details = (
                         "Critical Error in daily_update_sequence:\n"
@@ -669,16 +589,7 @@ class LondonServerProcessManager:
                         + "\n"
                         + "program should terminate and restart from scratch."
                     )
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e3:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e3)
-                        )
-                url = self.bus_project_url + "/mail/send_error_email"
-                headers = {"x-api-key": self.bus_project_key}
+                    self.send_error_message(subject, details)
                 subject = "daily_update_sequence Critical Error :" + repr(e)
                 details = (
                     "Critical Error in daily_update_sequence:\n"
@@ -686,14 +597,7 @@ class LondonServerProcessManager:
                     + "\n"
                     + "program should terminate and restart from scratch."
                 )
-                try:
-                    self.api_manager.post_error(
-                        url, headers, subject, details, self.logger
-                    )
-                except Exception as e2:
-                    self.logger.exception(
-                        "High Error, unable to mail error.\n" + repr(e2)
-                    )
+                self.send_error_message(subject, details)
 
                 self.handle_critical_error()
             finally:
@@ -718,16 +622,7 @@ class LondonServerProcessManager:
                         + "\n"
                         + "API validation has not been reset"
                     )
-                    url = self.bus_project_url + "/mail/send_error_email"
-                    headers = {"x-api-key": self.bus_project_key}
-                    try:
-                        self.api_manager.post_error(
-                            url, headers, subject, details, self.logger
-                        )
-                    except Exception as e:
-                        self.logger.exception(
-                            "High Error, unable to mail error.\n" + repr(e)
-                        )
+                    self.send_error_message(subject, details)
                     self.handle_critical_error()
                 self.save_coordinator.end_update()
             self.save_state()

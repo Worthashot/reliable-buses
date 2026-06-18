@@ -108,17 +108,12 @@ class LondonJourneyManager:
                 + "will proceed using previous "
                 + "valid journies. If a route passes an unexpected stop, data will not be usable for this day."
             )
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager High Error : " + repr(e)
             details = (
                 "High error, unable to get today's journeys from TFL API. Will proceed using previous "
                 + "valid journeys. If a route passes an unexpected stop, data will not be usable for this day."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
             return
         data = r.json()
         logger.info("fetching previous jounreys")
@@ -148,17 +143,12 @@ class LondonJourneyManager:
             logger.warning(
                 "Warning when creating dataframe for routes, some routes unabailable"
             )
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager Minor Error: unavailable routes"
             details = (
                 "A JSON of the dataframe of unavailable routes\n"
                 + unavailable_routes_relevent_dataframe.to_json()
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
 
         filled_df = to_check_df.loc[to_check_df["stop_list"] != ""]
 
@@ -201,17 +191,12 @@ class LondonJourneyManager:
                 + "Error: "
                 + repr(e)
             )
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager High Error : " + repr(e)
             details = (
                 "high error, unable to flag journeys inactive  as for Project API. Will proceed using previous "
                 + "valid journeys. If a route passes an unexpected stop, data will not be usable for this day."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
             return
 
         # XXX
@@ -264,17 +249,12 @@ class LondonJourneyManager:
                 + "Error: "
                 + repr(e)
             )
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager Minor Error : Cannot access Project API"
             details = (
                 "Minor error, unable to set flagged journeys inactive for Project API. ArrivalManager will not create a journey dataframe until all flagged "
                 + "journeys are set inactive, which is a check it will do periodically."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
             return
 
     # takes the dataframe from recorded journeys and matches this against the list of journeys from today
@@ -330,17 +310,12 @@ class LondonJourneyManager:
                 + repr(e)
                 + " Will create new database of journeys for today not consistant with established journeys"
             )
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager High Error : " + repr(e)
             details = (
                 f"High error, unable to lookup Project API for previous journeys at {url}."
                 + " Will create new database of journeys for today not consistant with established journeys"
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
             df1 = pd.DataFrame()
             error_flag = True
         else:
@@ -351,17 +326,12 @@ class LondonJourneyManager:
             df2["count"] = None
             if error_flag:
                 return df2
-            url = self.db_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonJourneyManager High Error : old journey list is empty"
             details = (
                 "High error, old lookup of Project API returns an empty list"
                 + " Will create new database of journeys for today not consistant with established journeys"
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.db_url, self.bus_project_api_key, subject, details, logger)
 
             return df2
 

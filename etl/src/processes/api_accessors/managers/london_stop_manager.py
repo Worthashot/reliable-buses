@@ -196,24 +196,17 @@ class LondonStopManager:
                 + "\n unable to lookup API for today's journeys. will proceed using previous "
                 + "valid stops. If a route passes an unexpected stop, data will not be usable until stops are updated."
             )
-            url = self.database_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonStopManager - High Error : " + repr(e)
             details = (
                 "High error, unable to lookup database API for today's journeys. Will proceed using previous "
                 + "valid stops. If a route passes an unexpected stop, data will not be usable until stops are updated."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
             raise
 
         try:
             df = pd.DataFrame(request.json())["stop_list"]
         except Exception as e:
-            url = self.database_url + "/mail/send_error_email"
-            headers = {"x-api-key": self.bus_project_api_key}
             subject = "LondonStopManager High Error : cannot use dataframe"
             details = (
                 "High error, unable find todays stop_list journeys. Will proceed using previous "
@@ -222,10 +215,7 @@ class LondonStopManager:
                 + repr(e)
                 + "."
             )
-            try:
-                self.api_manager.post_error(url, headers, subject, details, logger)
-            except Exception as e:
-                logger.exception("High Error, unable to mail error.\n" + repr(e))
+            self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
             raise
 
         stop_list = list(set((",".join(list(df))).split(",")))

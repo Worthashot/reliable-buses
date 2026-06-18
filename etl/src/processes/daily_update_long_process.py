@@ -35,8 +35,6 @@ def daily_update_long_process(
 
     except Exception as e:
         logger.exception("Critical Error in daily_update_long_process:\n" + repr(e))
-        url = bus_project_url + "/mail/send_error_email"
-        headers = {"x-api-key": bus_project_key}
         subject = "daily_update_long_process Critical Error :" + repr(e)
         details = (
             "Critical Error in daily_update_long_process:\n"
@@ -44,9 +42,6 @@ def daily_update_long_process(
             + "\n"
             + "program should restart from scratch."
         )
-        try:
-            api_manager.post_error(url, headers, subject, details, logger)
-        except Exception as e2:
-            logger.exception("High Error, unable to mail error.\n" + repr(e2))
+        api_manager.send_error_message(bus_project_url, bus_project_key, subject, details, logger)
         error_queue.put(e)
         raise

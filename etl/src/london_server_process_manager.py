@@ -22,19 +22,21 @@ from .processes import (
     timetable_manager_daily_process,
 )
 from .processes.api_accessors import managers as api_mgrs
-from .processes.logger_writer import LoggerWriter
+
+#from .processes.logger_writer import LoggerWriter
+from .processes.process_utility import setup_process_logging
 from .update_save_coordinator import UpdateSaveCoordinator
 
-original_stdout = sys.stdout
-original_stderr = sys.stderr
+#original_stdout = sys.stdout
+#original_stderr = sys.stderr
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(threadName)s - %(message)s",
-    stream=original_stdout,
-)
-sys.stdout = LoggerWriter(logging.getLogger("STDOUT"), logging.INFO)
-sys.stderr = LoggerWriter(logging.getLogger("STDERR"), logging.ERROR)
+#logging.basicConfig(
+#    level=logging.INFO,
+#    format="%(asctime)s - %(threadName)s - %(message)s",
+#    stream=original_stdout,
+#)
+#sys.stdout = LoggerWriter(logging.getLogger("STDOUT"), logging.INFO)
+#sys.stderr = LoggerWriter(logging.getLogger("STDERR"), logging.ERROR)
 
 
 class DailyUpdateSequenceError(Exception):
@@ -46,7 +48,8 @@ class LondonServerProcessManager:
     # initiation code
 
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        self.logger = setup_process_logging()
+        #self.logger = logging.getLogger(__name__)
         self.api_manager = api_mgrs.APIManager()
         etl_root = Path(__file__).parent.parent
         env_path = etl_root / ".env"

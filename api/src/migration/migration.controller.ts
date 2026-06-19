@@ -26,17 +26,17 @@ export class MigrationController {
     });  
   }
     this.logger.log('Starting database migration...');
-    this.taskStatus.startTask("migrating")
+    await this.taskStatus.startTask("migrating")
     res.status(202).json({ message: 'Task accepted' });
     setImmediate(async () => {
       try {
         await this.migrationService.dailyMigration();
       } catch (error) {
         this.logger.error('Migration failed', error);
-        this.taskStatus.startTask("migrating")
+        await this.taskStatus.failTask("migrating")
         throw error
       }
-      this.taskStatus.endTask("migrating")
+      await this.taskStatus.endTask("migrating")
     });
   }
 

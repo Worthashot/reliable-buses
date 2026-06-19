@@ -211,7 +211,7 @@ export class BasicController {
         retryAfter: 3600,
       });  
     }
-    this.taskStatus.startTask("deleting")
+    await this.taskStatus.startTask("deleting")
     res.status(202).json({ message: 'Task accepted' });
 
     setImmediate(async () => {
@@ -228,11 +228,11 @@ export class BasicController {
         this.logger.log('all basic entries deleted successfully');
       } catch (error) {
         this.logger.error('Deletion failed', error);
-        this.taskStatus.failTask("deleting")
+        await this.taskStatus.failTask("deleting")
         throw error
       }
     });
-    this.taskStatus.endTask("deleting")
+    await this.taskStatus.endTask("deleting")
     return;
   }  
 

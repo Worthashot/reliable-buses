@@ -216,14 +216,14 @@ class LondonArrivalManager:
                     + ". Unable to lookup periodic API for bus arrivals. Busses for this period will not"
                     + " be recorded"
                 )
-                subject = "LondonArrivalManager Medium Error: " + repr(e)
-                details = (
-                    "Medium error, unable to lookup periodic API for bus arrivals. Busses for this period will not"
-                    + " be recorded\n"
-                    + "URL "
-                    + url
-                )
-                self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
+                #subject = "LondonArrivalManager Medium Error: " + repr(e)
+                #details = (
+                #    "Medium error, unable to lookup periodic API for bus arrivals. Busses for this period will not"
+                #    + " be recorded\n"
+                #    + "URL "
+                #    + url
+                #)
+                #self.api_manager.send_error_message(self.database_url, self.bus_project_api_key, subject, details, logger)
                 return
 
             data = r.json()

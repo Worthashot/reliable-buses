@@ -527,14 +527,21 @@ class LondonArrivalManager:
     # their record.
     def run_valdation(self, logger):
         with self._lock:
-            self.validate_busses(self.active_busses_staging)
-            self.validate_busses(self.active_busses)
+            logger.info("Starting staging and active bus validation")
+            self.validate_busses(self.active_busses_staging, logger, type = "staging")
+            self.validate_busses(self.active_busses, logger, type = "live")
 
-        self.validate_specific_valid_arrivals(logger)
-        self.remove_specific_invalid_arrivals(logger)
+            logger.info("Finished validating staging and active buses. Starting deletion of validated and invalid records")
+            self.validate_specific_valid_arrivals(logger)
+            self.remove_specific_invalid_arrivals(logger)
+            logger.info("Finished record deletion")
 
-    def validate_busses(self, active_busses):
+    def validate_busses(self, active_busses, logger, type = "live"):
         bus_id_to_remove = []
+        removed_bus_id = 0
+        remaining_bus_id = 0
+        removed_busses = 0
+        remaining_busses = 0
         for bus_id, busses in active_busses.items():
             busses_to_remove = []
             i = 0
@@ -558,10 +565,18 @@ class LondonArrivalManager:
             if busses_to_remove:
                 for index in sorted(busses_to_remove, reverse=True):
                     busses.pop(index)
+                    removed_busses += 1
 
             if not busses:
                 bus_id_to_remove.append(bus_id)
+                removed_bus_id +=1
+            else:
+                remaining_bus_id += 1
+                remaining_busses += len(busses)
+
 
         if bus_id_to_remove:
             for bus_id in bus_id_to_remove:
                 active_busses.pop(bus_id, None)
+
+        logger.info(f"Validated {type}\nBuses removed: {removed_busses}\nId removed: {removed_bus_id}\nBuses remaining: {remaining_busses}\nBus IDs remaning: {remaining_bus_id}")

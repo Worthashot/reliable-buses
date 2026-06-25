@@ -40,7 +40,7 @@ class LondonTimetableManager:
     def daily_timetable_check(self, logger):
         url = self.database_url + "/basic/daily_services"
         headers = {"x-api-key": self.bus_project_api_key}
-        logger.info("Looking up TFL API")
+        logger.info("Looking up daily services")
         try:
             r, _attempts = self.api_manager.get_api(url, headers, logger)
         except Exception as e:

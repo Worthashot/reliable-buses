@@ -182,13 +182,13 @@ Select a **service**, **direction**, and **stop code** – the page will display
 
 ---
 
-## 📝 License
+## License
 
 MIT © [Cameron Stephen](https://github.com/Worthashot)
 
 ---
 
-## 📬 Contact
+## Contact
 
 - GitHub: [@Worthashot](https://github.com/Worthashot)  
 - LinkedIn: [cameron-stephen-433ba8151](https://linkedin.com/in/cameron-stephen-433ba8151)

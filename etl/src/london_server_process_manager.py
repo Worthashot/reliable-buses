@@ -217,22 +217,13 @@ class LondonServerProcessManager:
         self.logger.info("All threads finished. Exiting.")
 
     def handle_critical_error(self):
+        self._terminate_processes()
 
-        # 1. Delete saved state to avoid loading corrupted data next time
         AppState.delete(self.savestate_location)
         self.logger.info("Deleted corrupted state file.")
+        self.logger.info("Exiting application.")
+        os._exit(1)
 
-        # 2. Terminate all child processes (if any)
-        for p in self.processes:
-            if p.is_alive():
-                self.logger.warning(f"Terminating process {p.name}")
-                p.terminate()
-                time.sleep(0.5)
-                if p.is_alive():
-                    p.kill()
-
-        # 3. Force exit the whole process - threads will be killed
-        os._exit(1)  # immediate exit, no cleanup, no atexit
 
     def save_state(self):
         self.logger.info("Saving state")

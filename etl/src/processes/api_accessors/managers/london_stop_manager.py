@@ -81,13 +81,17 @@ class LondonStopManager:
             return True
 
         except requests.exceptions.RequestException as e:
-            logger.exception(f"Error downloading the file: {e!r}")
-            raise
+            logger.exception(f"High Error in downloading the file: {e!r}\n Continuing with previous CVS file")
+            return None
         except OSError as e:
-            logger.exception(f"Error writing the file: {e!r}")
-            raise
+            logger.exception(f"High Error writing the file: {e!r}\n Continuing with previous CVS file")
+            return None
 
     def update_daily_stops(self, logger):
+        file_path = Path(self.stop_csv_location + "/stops.csv")
+        if not file_path.exists():
+            logger.exception("Crittical Error: Stops CSV does not exist. Must restart and retry until CSV can be downloaded")
+            raise FileNotFoundError(f"Required file not found: {self.stop_csv_location + '/stops.csv'}")
         try:
             new_stop_info, unseen_stops = self.examine_stops_csv(logger)
         except Exception:

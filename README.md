@@ -1,6 +1,6 @@
 markdown
 
-# 🚌 Reliable Buses – Statistical Bus Arrival Prediction
+# Reliable Buses – Statistical Bus Arrival Prediction
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![NestJS](https://img.shields.io/badge/NestJS-10-red)](https://nestjs.com)
@@ -16,7 +16,7 @@ Predict future bus arrival times using historical and real‑time data from the 
 
 ---
 
-## 📖 What this project does
+## What this project does
 
 - **Captures** live bus data from the TfL API and stores it in a SQLite database.
 - **Runs a custom Python scheduler** (using threads and processes) to orchestrate tasks:
@@ -29,7 +29,7 @@ Predict future bus arrival times using historical and real‑time data from the 
 
 ---
 
-## 🧱 Architecture overview
+## Architecture overview
 
 ```mermaid
 flowchart TD
@@ -49,7 +49,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 
 ---
 
-## ✨ Key features (showcasing my skills)
+## Key features
 
 | Area | What I’ve implemented |
 |------|------------------------|
@@ -62,7 +62,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 
 ---
 
-## 🛠️ Tech stack
+## Tech stack
 
 | Component | Technologies |
 |-----------|--------------|
@@ -75,7 +75,7 @@ The custom scheduler runs inside the Python ETL component, ensuring that fresh d
 
 ---
 
-## 🚀 Installation & setup
+## Installation & setup
 
 ### Prerequisites
 - Git
@@ -143,7 +143,7 @@ Serve the `dist` folder (e.g., with  nginx).
 
 ---
 
-## 📡 API endpoints (examples)
+## API endpoints (examples)
 
 All endpoints require an `x-api-key` header (the key you set in `.env`).
 
@@ -163,7 +163,7 @@ for example of demo api calls, replace "your-api-key" with the public demo api k
 
 ---
 
-## 🖥️ Frontend usage
+## Frontend usage
 
 Open the frontend URL (e.g., `http://localhost:5173` or your live domain).  
 Select a **service**, **direction**, and **stop code** – the page will display an image similar to this:
@@ -173,7 +173,7 @@ Select a **service**, **direction**, and **stop code** – the page will display
 
 ---
 
-## 🔮 Future improvements
+## Future improvements
 
 - Write comprehensive tests for both the ETL scripts and API
 - Expand the website to include long term averages, and transfer predictions
